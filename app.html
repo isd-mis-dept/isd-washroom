@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#004C45">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ISD WC">
@@ -126,8 +127,9 @@
     color:var(--isd-teal);font-weight:600;display:flex;
     align-items:center;gap:8px;justify-content:center;}
   .shift-info .dot{width:8px;height:8px;border-radius:50%;
-    background:#FFDA00;box-shadow:0 0 6px #FFDA00;}
+    background:#FFDA00;box-shadow:0 0 6px #FFDA00;animation:pulse 2s infinite;}
   .shift-info.open .dot{background:#38D430;box-shadow:0 0 6px #38D430;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
   .hidden{display:none!important;}
   #toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;
@@ -154,7 +156,7 @@
 </head>
 <body>
 
-<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="box">
     <div class="logo-wrap">
@@ -179,7 +181,7 @@
   </div>
 </div>
 
-<!-- ══════════════ MAIN APP ══════════════ -->
+<!-- MAIN APP -->
 <div id="app" class="hidden">
   <header>
     <div class="left">
@@ -258,18 +260,64 @@
 
 <script>
 /* ═══════════════════════════════════════════════
-   CONFIG — Backend API URL
+   CONFIG
    ═══════════════════════════════════════════════ */
-const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+var API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+
+/* ═══════════════════════════════════════════════
+   JSONP HELPER
+   ═══════════════════════════════════════════════ */
+var _jsonpCounter = 0;
+
+function jsonp(params) {
+  return new Promise(function(resolve, reject) {
+    var callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    var timeoutMs = 30000;
+
+    var query = Object.keys(params)
+      .map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
+      })
+      .join('&');
+    var url = API + '?' + query + '&callback=' + callbackName;
+
+    var scriptEl = null;
+    var timeoutId = null;
+
+    function cleanup() {
+      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      if (timeoutId) clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    timeoutId = setTimeout(function() {
+      cleanup();
+      reject(new Error('Request timeout'));
+    }, timeoutMs);
+
+    scriptEl = document.createElement('script');
+    scriptEl.src = url;
+    scriptEl.onerror = function() {
+      cleanup();
+      reject(new Error('Network error'));
+    };
+    document.head.appendChild(scriptEl);
+  });
+}
 
 /* ═══════════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════════ */
-let session = null;
-let currentWc = null;
-let coords = null;
-let photos = [];
-let scanner = null;
+var session = null;
+var currentWc = null;
+var coords = null;
+var photos = [];
+var scanner = null;
 
 /* ═══════════════════════════════════════════════
    BOOT
@@ -277,22 +325,18 @@ let scanner = null;
 window.addEventListener('DOMContentLoaded', init);
 
 function init() {
-  // Load shift info (for login screen display)
   loadShiftInfo();
 
-  // Check for existing session
-  const saved = localStorage.getItem('isd_session');
+  var saved = localStorage.getItem('isd_session');
   if (saved) {
     try {
       session = JSON.parse(saved);
-      const age = Date.now() - (session.loginTime || 0);
-      const maxAge = 10 * 3600 * 1000; // 10 hours
-      if (age < maxAge) {
+      var age = Date.now() - (session.loginTime || 0);
+      if (age < 10 * 3600 * 1000) {
         showApp();
-        // Handle QR deep-link
-        const p = new URLSearchParams(location.search);
+        var p = new URLSearchParams(location.search);
         if (p.get('c')) {
-          setTimeout(() => {
+          setTimeout(function() {
             onScanSuccess(p.get('c'));
             history.replaceState({}, '', location.pathname);
           }, 400);
@@ -309,53 +353,64 @@ function init() {
    SHIFT INFO
    ═══════════════════════════════════════════════ */
 function loadShiftInfo() {
-  fetch(API + '?action=shiftInfo')
-    .then(r => r.json())
-    .then(data => {
-      if (!data.ok) return;
-      const el = document.getElementById('shiftInfo');
-      const txt = document.getElementById('shiftInfoText');
-
-      if (data.isWithinShift) {
-        txt.textContent = '🟢 Shift open · ' + data.shiftStart + ' – ' + data.shiftEnd;
-        el.classList.add('open');
-      } else {
-        txt.textContent = '🟡 ' + data.currentReason;
+  var cached = sessionStorage.getItem('shiftInfoCache');
+  if (cached) {
+    try {
+      var data = JSON.parse(cached);
+      if (Date.now() - data.ts < 5 * 60 * 1000) {
+        applyShiftInfo(data.info);
+        return;
       }
+    } catch(_) {}
+  }
+
+  jsonp({ action: 'shiftInfo' })
+    .then(function(data) {
+      if (!data.ok) return;
+      sessionStorage.setItem('shiftInfoCache', JSON.stringify({
+        ts: Date.now(),
+        info: data
+      }));
+      applyShiftInfo(data);
     })
-    .catch(() => {
+    .catch(function() {
       document.getElementById('shiftInfoText').textContent = '⚠️ Could not load shift info';
     });
+}
+
+function applyShiftInfo(data) {
+  var el = document.getElementById('shiftInfo');
+  var txt = document.getElementById('shiftInfoText');
+  if (data.isWithinShift) {
+    txt.textContent = '🟢 Shift open · ' + data.shiftStart + ' – ' + data.shiftEnd;
+    el.classList.add('open');
+  } else {
+    txt.textContent = '🟡 ' + data.currentReason;
+  }
 }
 
 /* ═══════════════════════════════════════════════
    LOGIN
    ═══════════════════════════════════════════════ */
-async function doLogin() {
-  const staffId = document.getElementById('staffId').value.trim();
-  const pin     = document.getElementById('pin').value.trim();
-  const msg     = document.getElementById('loginMsg');
-  const btn     = document.getElementById('loginBtn');
+function doLogin() {
+  var staffId = document.getElementById('staffId').value.trim();
+  var pin     = document.getElementById('pin').value.trim();
+  var msg     = document.getElementById('loginMsg');
+  var btn     = document.getElementById('loginBtn');
 
-  if (!staffId || !pin) {
-    msg.textContent = '⚠️ Enter Staff ID and PIN';
-    return;
-  }
+  if (!staffId || !pin) { msg.textContent = '⚠️ Enter Staff ID and PIN'; return; }
 
   btn.disabled = true;
   btn.textContent = '⏳ Signing in...';
   msg.textContent = '';
 
-  try {
-    const url = API
-      + '?action=login'
-      + '&staffId=' + encodeURIComponent(staffId)
-      + '&pin=' + encodeURIComponent(pin)
-      + '&deviceInfo=' + encodeURIComponent(navigator.userAgent.substring(0, 120));
-
-    const res = await fetch(url);
-    const data = await res.json();
-
+  jsonp({
+    action: 'login',
+    staffId: staffId,
+    pin: pin,
+    deviceInfo: navigator.userAgent.substring(0, 120)
+  })
+  .then(function(data) {
     if (!data.ok) {
       msg.textContent = '❌ ' + (data.error || 'Login failed');
       btn.disabled = false;
@@ -368,25 +423,23 @@ async function doLogin() {
     localStorage.setItem('isd_session', JSON.stringify(data));
     showApp();
     toast('✅ Welcome ' + data.name + '!');
-  } catch (err) {
-    console.error('Login error:', err);
+  })
+  .catch(function(err) {
     msg.textContent = '❌ ' + (err.message || 'Network error');
     btn.disabled = false;
     btn.textContent = '🔐 Login';
-  }
+  });
 }
 
-async function doLogout() {
+function doLogout() {
   if (!confirm('Log out?')) return;
-  try {
-    await fetch(API + '?action=logout&token=' + encodeURIComponent(session.token));
-  } catch(_) {}
+  jsonp({ action: 'logout', token: session.token }).catch(function(){});
   localStorage.removeItem('isd_session');
   session = null;
   location.reload();
 }
 
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
     doLogin();
   }
@@ -416,7 +469,7 @@ function showApp() {
 function startGPS() {
   if (!navigator.geolocation) { setGpsBadge('Not supported', 'b-bad'); return; }
   navigator.geolocation.watchPosition(
-    pos => {
+    function(pos) {
       coords = {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
@@ -425,28 +478,29 @@ function startGPS() {
       setGpsBadge('±' + coords.acc + 'm', coords.acc <= 30 ? 'b-ok' : 'b-warn');
       if (currentWc) checkGeofence();
     },
-    err => { setGpsBadge('Denied', 'b-bad'); },
+    function() { setGpsBadge('Denied', 'b-bad'); },
     { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
   );
 }
 
 function setGpsBadge(text, cls) {
-  const b = document.getElementById('gpsBadge');
+  var b = document.getElementById('gpsBadge');
   b.textContent = '📍 ' + text;
   b.className = 'badge ' + cls;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
-  const R=6371000, r=x=>x*Math.PI/180;
-  const dLat=r(lat2-lat1), dLon=r(lon2-lon1);
-  const a=Math.sin(dLat/2)**2 + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)**2;
+  var R=6371000, r=function(x){return x*Math.PI/180;};
+  var dLat=r(lat2-lat1), dLon=r(lon2-lon1);
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)
+    + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
   return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 function checkGeofence() {
   if (!currentWc || !coords) return;
-  const d = haversine(coords.lat, coords.lng, currentWc.lat, currentWc.lng);
-  const el = document.getElementById('gpsCheck');
+  var d = haversine(coords.lat, coords.lng, currentWc.lat, currentWc.lng);
+  var el = document.getElementById('gpsCheck');
   if (d <= 50) {
     el.innerHTML = '<span class="badge b-ok">✅ Within range (' + d.toFixed(1) + 'm)</span>';
   } else {
@@ -457,10 +511,10 @@ function checkGeofence() {
 /* ═══════════════════════════════════════════════
    QR SCANNER
    ═══════════════════════════════════════════════ */
-async function startScan() {
-  const reader = document.getElementById('reader');
-  const scanBtn = document.getElementById('scanBtn');
-  const stopBtn = document.getElementById('stopBtn');
+function startScan() {
+  var reader = document.getElementById('reader');
+  var scanBtn = document.getElementById('scanBtn');
+  var stopBtn = document.getElementById('stopBtn');
 
   reader.classList.remove('hidden');
   scanBtn.classList.add('hidden');
@@ -468,73 +522,58 @@ async function startScan() {
   reader.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;">⏳ Starting camera...</div>';
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    handleCameraError('Your browser does not support camera. Please use Chrome/Safari on your phone.');
+    handleCameraError('Your browser does not support camera access.');
     return;
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(function(stream) {
+      stream.getTracks().forEach(function(t) { t.stop(); });
+
+      reader.innerHTML = '';
+      scanner = new Html5Qrcode('reader');
+
+      return scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        function() {}
+      );
+    })
+    .catch(function(err) {
+      console.error('Camera error:', err);
+      var msg = 'Camera error';
+      if (err.name === 'NotAllowedError') msg = 'Camera permission denied.';
+      else if (err.name === 'NotFoundError') msg = 'No camera found.';
+      else if (err.message) msg = err.message;
+      handleCameraError(msg);
     });
-    stream.getTracks().forEach(t => t.stop());
-
-    reader.innerHTML = '';
-    scanner = new Html5Qrcode('reader');
-
-    await scanner.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      onScanSuccess,
-      () => {}
-    );
-  } catch (err) {
-    console.error('Camera error:', err);
-    let msg = 'Camera error';
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      msg = 'Camera permission denied. Allow camera access in settings.';
-    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      msg = 'No camera found. Please use a phone.';
-    } else if (err.name === 'NotReadableError') {
-      msg = 'Camera in use by another app.';
-    } else if (err.message) {
-      msg = err.message;
-    }
-    handleCameraError(msg);
-  }
 }
 
 function handleCameraError(msg) {
-  const reader = document.getElementById('reader');
-  const scanBtn = document.getElementById('scanBtn');
-  const stopBtn = document.getElementById('stopBtn');
+  var reader = document.getElementById('reader');
+  document.getElementById('scanBtn').classList.remove('hidden');
+  document.getElementById('stopBtn').classList.add('hidden');
 
   reader.innerHTML =
     '<div style="padding:32px 20px;text-align:center;color:#fff;">'
       + '<div style="font-size:44px;margin-bottom:14px;">📷</div>'
       + '<div style="font-size:14px;font-weight:700;line-height:1.5;margin-bottom:18px;">' + msg + '</div>'
       + '<button onclick="manualEntry()" style="background:#38D430;color:#fff;border:none;'
-      + 'padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;'
-      + 'font-family:inherit;">⌨️ Enter Code Manually</button>'
-      + '<button onclick="stopScan()" style="background:rgba(255,255,255,.15);color:#fff;'
-      + 'border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;'
-      + 'margin-left:8px;margin-top:12px;cursor:pointer;font-family:inherit;">Cancel</button>'
+      + 'padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">'
+      + '⌨️ Enter Code Manually</button>'
     + '</div>';
-
-  scanBtn.classList.remove('hidden');
-  stopBtn.classList.add('hidden');
   toast('❌ ' + msg);
 }
 
 function manualEntry() {
-  const code = prompt('Enter Washroom Code:\n(e.g., WC-TEST-001)');
-  if (code && code.trim()) {
-    onScanSuccess(code.trim());
-  }
+  var code = prompt('Enter Washroom Code:');
+  if (code && code.trim()) onScanSuccess(code.trim());
 }
 
-async function stopScan() {
+function stopScan() {
   if (scanner) {
-    try { await scanner.stop(); scanner.clear(); } catch(_) {}
+    try { scanner.stop(); scanner.clear(); } catch(_) {}
     scanner = null;
   }
   document.getElementById('reader').classList.add('hidden');
@@ -542,14 +581,14 @@ async function stopScan() {
   document.getElementById('stopBtn').classList.add('hidden');
 }
 
-async function onScanSuccess(text) {
-  await stopScan();
+function onScanSuccess(text) {
+  stopScan();
   showLoading('Looking up washroom...');
 
-  let code = text;
+  var code = text;
   try {
     if (text.indexOf('?c=') > -1 || text.indexOf('&c=') > -1) {
-      const url = new URL(text);
+      var url = new URL(text);
       code = url.searchParams.get('c') || text;
     }
   } catch(_) {}
@@ -557,36 +596,35 @@ async function onScanSuccess(text) {
   code = String(code).trim();
   if (!code) { hideLoading(); toast('❌ Invalid QR'); return; }
 
-  try {
-    const res = await fetch(API + '?action=getWashroom&code=' + encodeURIComponent(code));
-    const data = await res.json();
-    hideLoading();
+  jsonp({ action: 'getWashroom', code: code })
+    .then(function(data) {
+      hideLoading();
 
-    if (!data.ok) { toast('❌ ' + data.error); return; }
-    const w = data.washroom;
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      var w = data.washroom;
 
-    if (String(w.status).toLowerCase() !== 'active') {
-      alert('⛔ This washroom is currently:\n\n' + w.status + '\n\nScanning not allowed.');
-      return;
-    }
-    if (w.scanPermission === 'disabled') {
-      alert('⛔ Scanning disabled by admin for ' + code + '.');
-      return;
-    }
-    if (w.scanPermission === 'restricted'
-        && w.allowedRoles.length
-        && w.allowedRoles.indexOf(session.role) === -1) {
-      alert('🔒 Restricted washroom.\nOnly [' + w.allowedRoles.join(', ') + '] can scan.');
-      return;
-    }
+      if (String(w.status).toLowerCase() !== 'active') {
+        alert('⛔ This washroom is currently: ' + w.status);
+        return;
+      }
+      if (w.scanPermission === 'disabled') {
+        alert('⛔ Scanning disabled by admin.');
+        return;
+      }
+      if (w.scanPermission === 'restricted' && w.allowedRoles.length
+          && w.allowedRoles.indexOf(session.role) === -1) {
+        alert('🔒 Restricted washroom.');
+        return;
+      }
 
-    currentWc = w;
-    renderWashroom(w);
-    toast('✅ ' + w.code + ' detected');
-  } catch (err) {
-    hideLoading();
-    toast('❌ Network error');
-  }
+      currentWc = w;
+      renderWashroom(w);
+      toast('✅ ' + w.code + ' detected');
+    })
+    .catch(function(err) {
+      hideLoading();
+      toast('❌ ' + err.message);
+    });
 }
 
 function renderWashroom(w) {
@@ -608,12 +646,12 @@ document.getElementById('fileIn').addEventListener('change', handlePhotos);
 document.getElementById('camIn').addEventListener('change', handlePhotos);
 
 function handlePhotos(e) {
-  const files = Array.from(e.target.files || []);
-  files.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
+  var files = Array.prototype.slice.call(e.target.files || []);
+  files.forEach(function(file) {
+    if (file.type.indexOf('image/') !== 0) return;
     if (file.size > 5 * 1024 * 1024) { toast('⚠️ Photo too large (max 5MB)'); return; }
-    const reader = new FileReader();
-    reader.onload = ev => {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
       photos.push({ mimeType: file.type, data: ev.target.result.split(',')[1] });
       renderThumbs();
     };
@@ -623,71 +661,61 @@ function handlePhotos(e) {
 }
 
 function renderThumbs() {
-  document.getElementById('thumbs').innerHTML = photos.map((p, i) =>
-    '<div class="thumb">'
-    + '<img src="data:' + p.mimeType + ';base64,' + p.data + '" alt="photo">'
-    + '<button class="rm" onclick="removePhoto(' + i + ')" type="button">×</button>'
-    + '</div>'
-  ).join('');
+  document.getElementById('thumbs').innerHTML = photos.map(function(p, i) {
+    return '<div class="thumb">'
+      + '<img src="data:' + p.mimeType + ';base64,' + p.data + '" alt="photo">'
+      + '<button class="rm" onclick="removePhoto(' + i + ')" type="button">×</button>'
+      + '</div>';
+  }).join('');
 }
 
-function removePhoto(i) {
-  photos.splice(i, 1);
-  renderThumbs();
-}
+function removePhoto(i) { photos.splice(i, 1); renderThumbs(); }
 
 /* ═══════════════════════════════════════════════
-   SUBMIT INSPECTION
+   SUBMIT
    ═══════════════════════════════════════════════ */
-async function submitInspection() {
+function submitInspection() {
   if (!currentWc) { toast('⚠️ Scan a QR first'); return; }
   if (!coords)    { toast('⚠️ Wait for GPS signal'); return; }
 
-  const btn = document.getElementById('submitBtn');
+  var btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = '⏳ Submitting...';
-  showLoading(photos.length ? 'Uploading ' + photos.length + ' photo(s)...' : 'Submitting...');
+  showLoading(photos.length ? 'Uploading photos...' : 'Submitting...');
 
-  try {
-    const params = [
-      'action=submit',
-      'token=' + encodeURIComponent(session.token),
-      'code=' + encodeURIComponent(currentWc.code),
-      'remarks=' + encodeURIComponent(document.getElementById('remarks').value.trim()),
-      'lat=' + coords.lat,
-      'lng=' + coords.lng,
-      'photos=' + encodeURIComponent(JSON.stringify(photos)),
-      'deviceInfo=' + encodeURIComponent(navigator.userAgent.substring(0, 120))
-    ].join('&');
-
-    const res = await fetch(API + '?' + params);
-    const data = await res.json();
+  jsonp({
+    action: 'submit',
+    token: session.token,
+    code: currentWc.code,
+    remarks: document.getElementById('remarks').value.trim(),
+    lat: coords.lat,
+    lng: coords.lng,
+    photos: JSON.stringify(photos),
+    deviceInfo: navigator.userAgent.substring(0, 120)
+  })
+  .then(function(data) {
     hideLoading();
 
     if (!data.ok) {
       toast('❌ ' + data.error);
-      alert('❌ Submission failed:\n\n' + data.error);
       btn.disabled = false;
       btn.textContent = '✅ CHECKED & SUBMIT';
       return;
     }
 
-    const statusText = data.status === 'OK' ? '✅ Verified' : '⚠️ GPS Mismatch';
-    toast('✅ Submitted — ' + statusText + ' (' + data.distance + 'm)');
-    alert('✅ Inspection recorded!\n\n'
-      + 'Washroom: ' + currentWc.code + '\n'
-      + 'Status: ' + statusText + '\n'
-      + 'Distance: ' + data.distance + 'm\n'
-      + 'Time: ' + new Date(data.timestamp).toLocaleTimeString());
+    var statusText = data.status === 'OK' ? '✅ Verified' : '⚠️ GPS Mismatch';
+    toast('✅ Submitted — ' + statusText);
+    alert('✅ Inspection recorded!\n\nWashroom: ' + currentWc.code + '\nStatus: ' + statusText);
     resetForm();
     loadProgress();
     loadRecent();
-  } catch (err) {
+  })
+  .catch(function(err) {
     hideLoading();
-    toast('❌ Network error: ' + err.message);
+    toast('❌ ' + err.message);
     btn.disabled = false;
     btn.textContent = '✅ CHECKED & SUBMIT';
-  }
+  });
 }
 
 function resetForm() {
@@ -696,7 +724,7 @@ function resetForm() {
   document.getElementById('detailCard').classList.add('hidden');
   document.getElementById('thumbs').innerHTML = '';
   document.getElementById('remarks').value = '';
-  const btn = document.getElementById('submitBtn');
+  var btn = document.getElementById('submitBtn');
   btn.disabled = false;
   btn.textContent = '✅ CHECKED & SUBMIT';
 }
@@ -704,40 +732,40 @@ function resetForm() {
 /* ═══════════════════════════════════════════════
    PROGRESS + RECENT
    ═══════════════════════════════════════════════ */
-async function loadProgress() {
-  try {
-    const res = await fetch(API + '?action=getDashboard&token=' + encodeURIComponent(session.token));
-    const data = await res.json();
-    if (!data.ok) return;
-    const pct = data.total ? (data.checked / data.total * 100) : 0;
-    document.getElementById('progBar').style.width = pct + '%';
-    document.getElementById('progPct').textContent =
-      data.checked + ' / ' + data.total + ' (' + data.compliance + '%)';
-  } catch(_) {}
+function loadProgress() {
+  jsonp({ action: 'getDashboard', token: session.token })
+    .then(function(data) {
+      if (!data.ok) return;
+      var pct = data.total ? (data.checked / data.total * 100) : 0;
+      document.getElementById('progBar').style.width = pct + '%';
+      document.getElementById('progPct').textContent =
+        data.checked + ' / ' + data.total + ' (' + data.compliance + '%)';
+    })
+    .catch(function(){});
 }
 
-async function loadRecent() {
-  try {
-    const res = await fetch(API + '?action=getDashboard&token=' + encodeURIComponent(session.token));
-    const data = await res.json();
-    if (!data.ok) return;
-    const list = document.getElementById('recentList');
-    if (!data.recent.length) {
-      list.innerHTML = '<div style="color:#999;text-align:center;padding:12px;">No scans yet today</div>';
-      return;
-    }
-    list.innerHTML = data.recent.slice(0, 8).map(r => {
-      const ok = r.status === 'OK';
-      const badge = ok
-        ? '<span class="badge b-ok" style="font-size:9px;padding:3px 8px;">OK</span>'
-        : '<span class="badge b-bad" style="font-size:9px;padding:3px 8px;">GPS</span>';
-      const t = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-      return '<div class="list-row">'
-        + '<div>' + badge + ' <b>' + r.code + '</b></div>'
-        + '<div class="meta">' + t + '</div>'
-        + '</div>';
-    }).join('');
-  } catch(_) {}
+function loadRecent() {
+  jsonp({ action: 'getDashboard', token: session.token })
+    .then(function(data) {
+      if (!data.ok) return;
+      var list = document.getElementById('recentList');
+      if (!data.recent.length) {
+        list.innerHTML = '<div style="color:#999;text-align:center;padding:12px;">No scans yet today</div>';
+        return;
+      }
+      list.innerHTML = data.recent.slice(0, 8).map(function(r) {
+        var ok = r.status === 'OK';
+        var badge = ok
+          ? '<span class="badge b-ok" style="font-size:9px;padding:3px 8px;">OK</span>'
+          : '<span class="badge b-bad" style="font-size:9px;padding:3px 8px;">GPS</span>';
+        var t = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        return '<div class="list-row">'
+          + '<div>' + badge + ' <b>' + r.code + '</b></div>'
+          + '<div class="meta">' + t + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){});
 }
 
 /* ═══════════════════════════════════════════════
@@ -751,11 +779,11 @@ function hideLoading() {
   document.getElementById('loading').classList.remove('show');
 }
 function toast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(window._toastTid);
-  window._toastTid = setTimeout(() => t.classList.remove('show'), 2500);
+  window._toastTid = setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 </script>
 </body>
