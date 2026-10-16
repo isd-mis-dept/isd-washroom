@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ISD WC">
+<link rel="manifest" href="manifest.json">
+<title>ISD Washroom</title>
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;
+    --isd-orange:#FF5C35;--isd-light-teal:#E6F2F0;
+    --muted:#5C7B77;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:linear-gradient(160deg,#004C45 0%,#00332E 100%);
+    color:#fff;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));
+  }
+  .box{text-align:center;max-width:420px;width:100%;}
+  .logo-wrap{
+    width:110px;height:110px;margin:0 auto 16px;
+    background:#fff;border-radius:24px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 40px rgba(0,0,0,.3);
+    padding:12px;overflow:hidden;
+  }
+  .logo-wrap img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+  .logo-wrap .fallback{font-size:56px;line-height:1;}
+  h1{font-size:26px;font-weight:800;margin-bottom:6px;letter-spacing:.5px;}
+  .sub{opacity:.85;font-size:14px;margin-bottom:6px;font-weight:500;}
+  .school{font-size:11px;opacity:.65;letter-spacing:2px;
+    text-transform:uppercase;margin-bottom:36px;font-weight:600;}
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    background:#fff;color:var(--isd-teal);text-decoration:none;
+    padding:18px 24px;border-radius:14px;
+    font-weight:800;font-size:16px;margin-bottom:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+    transition:transform .15s,box-shadow .15s;
+    cursor:pointer;border:none;width:100%;font-family:inherit;letter-spacing:.3px;
+  }
+  .btn:active{transform:scale(.97);box-shadow:0 4px 12px rgba(0,0,0,.25);}
+  .btn .icon{font-size:22px;}
+  .btn.secondary{
+    background:rgba(255,255,255,.12);color:#fff;box-shadow:none;
+    font-weight:600;font-size:14px;padding:14px 20px;
+    border:1.5px solid rgba(255,255,255,.2);
+  }
+  .foot{
+    margin-top:36px;font-size:11px;opacity:.55;letter-spacing:1px;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .foot .badge{
+    background:rgba(255,255,255,.15);padding:3px 8px;border-radius:8px;
+    font-size:9px;font-weight:700;letter-spacing:.5px;
+  }
+  .shift-banner{
+    margin-top:18px;padding:10px 14px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;font-size:12px;
+    display:flex;align-items:center;gap:8px;justify-content:center;
+  }
+  .shift-banner .dot{
+    width:8px;height:8px;border-radius:50%;background:#FFDA00;
+    box-shadow:0 0 8px #FFDA00;animation:pulse 2s infinite;
+  }
+  .shift-banner.open .dot{background:#38D430;box-shadow:0 0 8px #38D430;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+  @media (min-width:600px){h1{font-size:32px;}.logo-wrap{width:130px;height:130px;}}
+</style>
+</head>
+<body>
+<div class="box">
+
+  <div class="logo-wrap">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+         alt="ISD"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+    <div class="fallback" style="display:none;">🏫</div>
+  </div>
+
+  <h1>ISD Washroom</h1>
+  <div class="sub">Inspection Management System</div>
+  <div class="school">International School Dhaka</div>
+
+  <button onclick="goTo('app')" class="btn">
+    <span class="icon">📷</span>
+    <span>Open Scanner App</span>
+  </button>
+
+  <button onclick="goTo('dashboard')" class="btn secondary">
+    <span class="icon">📊</span>
+    <span>View Dashboard</span>
+  </button>
+
+  <div class="shift-banner" id="shiftBanner">
+    <span class="dot"></span>
+    <span id="shiftText">Checking shift status...</span>
+  </div>
+
+  <div class="foot">
+    <span>Powered by</span>
+    <span class="badge">ISD MIS DEPT</span>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG — Apps Script backend URL
+// ═══════════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+
+// ═══════════════════════════════════════════════
+// NAVIGATION — direct .html links (no iframe issues on GitHub Pages)
+// ═══════════════════════════════════════════════
+function goTo(page) {
+  window.location.href = page + '.html';
+}
+
+// ═══════════════════════════════════════════════
+// AUTO-REDIRECT IF QR PARAM PRESENT
+// ═══════════════════════════════════════════════
+(function(){
+  try {
+    var p = new URLSearchParams(location.search);
+    if (p.get('c')) {
+      var target = 'app.html?c=' + encodeURIComponent(p.get('c'))
+        + (p.get('h') ? '&h=' + encodeURIComponent(p.get('h')) : '');
+      window.location.replace(target);
+    }
+  } catch(_) {}
+})();
+
+// ═══════════════════════════════════════════════
+// FETCH SHIFT STATUS
+// ═══════════════════════════════════════════════
+(function loadShift() {
+  fetch(API + '?action=shiftInfo')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.ok) return;
+      var text = document.getElementById('shiftText');
+      var banner = document.getElementById('shiftBanner');
+
+      if (data.isWithinShift) {
+        text.textContent = '🟢 Shift open · ' + data.shiftStart + ' – ' + data.shiftEnd;
+        banner.classList.add('open');
+      } else {
+        text.textContent = '🟡 ' + (data.currentReason || 'Outside shift hours');
+      }
+    })
+    .catch(function(){
+      document.getElementById('shiftText').textContent = '⚠️ Could not load shift info';
+    });
+})();
+</script>
+</body>
+</html>
