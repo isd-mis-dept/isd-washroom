@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#004C45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ISD WC">
+<link rel="manifest" href="manifest.json">
+<title>ISD Washroom Scanner</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;--isd-teal-light:#0A6B62;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;--isd-orange:#FF5C35;
+    --isd-white:#FFFFFF;--isd-gray:#F5F7F6;--isd-light-teal:#E6F2F0;
+    --bg:#F5F7F6;--card:#FFFFFF;--text:#004C45;--muted:#5C7B77;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);overscroll-behavior-y:contain;}
+  body{min-height:100vh;padding-top:var(--safe-t);}
+  input,textarea,select,button{font-family:inherit;font-size:16px;}
+
+  header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
+    padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,76,69,.3);}
+  header .left{display:flex;align-items:center;gap:10px;}
+  header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    padding:3px;flex-shrink:0;}
+  header .logo-sm img{max-width:100%;max-height:100%;object-fit:contain;}
+  header .logo-sm .fallback{font-size:20px;}
+  header .user-info{display:flex;flex-direction:column;}
+  header .name{font-weight:700;font-size:14px;line-height:1.2;}
+  header .role{font-size:10px;opacity:.85;text-transform:uppercase;
+    letter-spacing:.8px;font-weight:600;color:var(--isd-yellow);}
+  header button{background:rgba(255,255,255,.15);color:#fff;border:none;
+    padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;
+    cursor:pointer;width:auto;margin:0;transition:background .2s;}
+  header button:active{background:rgba(255,255,255,.3);}
+
+  .progress-wrap{background:#fff;padding:10px 16px;border-bottom:1px solid #E0E8E6;}
+  .progress-info{display:flex;justify-content:space-between;font-size:12px;
+    color:var(--muted);margin-bottom:6px;font-weight:700;}
+  .progress{height:8px;background:#E0E8E6;border-radius:6px;overflow:hidden;}
+  .progress > div{height:100%;background:linear-gradient(90deg,#38D430,#2BA824);
+    transition:width .5s ease;border-radius:6px;width:0%;}
+
+  .container{max-width:520px;margin:0 auto;padding:14px 14px calc(90px + var(--safe-b));}
+  .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;
+    box-shadow:0 2px 12px rgba(0,76,69,.08);}
+  .card h3{margin:0 0 10px;font-size:16px;color:var(--isd-teal);font-weight:800;}
+
+  input,textarea,select{width:100%;padding:12px 14px;border:2px solid #D5DFDD;
+    border-radius:10px;margin-top:6px;background:#FAFCFB;color:var(--text);
+    transition:border-color .2s;font-size:15px;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--isd-teal);
+    background:#fff;box-shadow:0 0 0 3px rgba(0,76,69,.1);}
+  textarea{resize:vertical;min-height:60px;font-family:inherit;}
+
+  button{width:100%;padding:14px;background:var(--isd-teal);color:#fff;border:none;
+    border-radius:10px;font-size:15px;font-weight:700;margin-top:10px;
+    cursor:pointer;transition:transform .1s,opacity .2s;touch-action:manipulation;}
+  button:active{transform:scale(.98);opacity:.9;}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  button.ok{background:linear-gradient(135deg,#38D430,#2BA824);
+    box-shadow:0 4px 14px rgba(56,212,48,.35);}
+  button.warn{background:var(--isd-orange);}
+  button.ghost{background:var(--isd-light-teal);color:var(--isd-teal);
+    border:1.5px solid rgba(0,76,69,.15);}
+  button.big{padding:20px;font-size:17px;}
+
+  .badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;
+    font-weight:800;letter-spacing:.4px;text-transform:uppercase;}
+  .b-ok{background:#DFF9DD;color:#1F7A1B;}
+  .b-bad{background:#FFE0D6;color:#C93B14;}
+  .b-warn{background:#FFF7BF;color:#8A6400;}
+  .b-info{background:#DCEEEC;color:var(--isd-teal);}
+
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+    gap:8px;margin-top:10px;}
+  .thumbs .thumb{position:relative;aspect-ratio:1;border-radius:10px;
+    overflow:hidden;border:2px solid var(--isd-teal);}
+  .thumbs .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumbs .thumb .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);
+    color:#fff;border:none;width:24px;height:24px;border-radius:50%;font-size:14px;
+    line-height:1;padding:0;margin:0;cursor:pointer;font-weight:800;}
+  .photo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .photo-row button{margin-top:0;padding:12px;font-size:13px;}
+
+  #reader{border-radius:12px;overflow:hidden;background:#000;min-height:280px;
+    position:relative;}
+  #reader video{border-radius:12px;display:block;}
+
+  .list-row{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid #F0F4F3;font-size:14px;}
+  .list-row:last-child{border-bottom:none;}
+  .list-row .meta{font-size:12px;color:var(--muted);}
+
+  #loginScreen{position:fixed;inset:0;
+    background:linear-gradient(160deg,#004C45,#00332E);
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;
+    padding-top:calc(20px + var(--safe-t));overflow-y:auto;}
+  #loginScreen .box{background:#fff;border-radius:20px;padding:28px 24px;
+    width:100%;max-width:400px;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);margin:auto;}
+  #loginScreen .logo-wrap{width:84px;height:84px;margin:0 auto 14px;
+    background:#F5F7F6;border-radius:20px;display:flex;align-items:center;
+    justify-content:center;padding:10px;overflow:hidden;}
+  #loginScreen .logo-wrap img{max-width:100%;max-height:100%;object-fit:contain;}
+  #loginScreen .logo-wrap .fallback{font-size:44px;}
+  #loginScreen h1{margin:0 0 4px;color:var(--isd-teal);font-size:24px;font-weight:800;}
+  #loginScreen p{color:var(--muted);font-size:13px;margin:0 0 20px;font-weight:500;}
+  #loginScreen .school-tag{font-size:10px;color:var(--muted);letter-spacing:1.5px;
+    text-transform:uppercase;font-weight:700;margin-bottom:18px;}
+  #loginMsg{color:var(--isd-orange);min-height:18px;font-size:13px;
+    margin-top:12px;font-weight:600;}
+
+  .shift-info{background:var(--isd-light-teal);border-radius:10px;
+    padding:10px 12px;margin-bottom:18px;font-size:12px;
+    color:var(--isd-teal);font-weight:600;display:flex;
+    align-items:center;gap:8px;justify-content:center;}
+  .shift-info .dot{width:8px;height:8px;border-radius:50%;
+    background:#FFDA00;box-shadow:0 0 6px #FFDA00;}
+  .shift-info.open .dot{background:#38D430;box-shadow:0 0 6px #38D430;}
+
+  .hidden{display:none!important;}
+  #toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;
+    transform:translateX(-50%) translateY(100px);background:var(--isd-teal);color:#fff;
+    padding:12px 22px;border-radius:10px;font-size:13px;font-weight:700;
+    opacity:0;transition:all .3s;z-index:9999;max-width:calc(100% - 40px);
+    box-shadow:0 8px 24px rgba(0,76,69,.35);text-align:center;pointer-events:none;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #loading{position:fixed;inset:0;background:rgba(0,51,46,.85);color:#fff;
+    display:none;align-items:center;justify-content:center;flex-direction:column;
+    gap:14px;z-index:9998;font-size:14px;font-weight:700;}
+  #loading.show{display:flex;}
+  .spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.25);
+    border-top-color:var(--isd-green);border-radius:50%;
+    animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .info-row{display:flex;justify-content:space-between;padding:8px 0;
+    border-bottom:1px solid #F0F4F3;font-size:13px;}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .lbl{color:var(--muted);font-weight:600;}
+  .info-row .val{font-weight:700;text-align:right;max-width:60%;color:var(--isd-teal);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="loginScreen">
+  <div class="box">
+    <div class="logo-wrap">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+           alt="ISD"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="fallback" style="display:none;">🏫</div>
+    </div>
+    <h1>ISD Washroom</h1>
+    <p>Inspection Scanner — Staff Login</p>
+    <div class="school-tag">International School Dhaka</div>
+
+    <div class="shift-info" id="shiftInfo">
+      <span class="dot"></span>
+      <span id="shiftInfoText">Loading shift info...</span>
+    </div>
+
+    <input id="staffId" placeholder="Staff ID" autocomplete="username">
+    <input id="pin" type="password" placeholder="PIN" inputmode="numeric" autocomplete="current-password">
+    <button onclick="doLogin()" id="loginBtn">🔐 Login</button>
+    <p id="loginMsg"></p>
+  </div>
+</div>
+
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div id="app" class="hidden">
+  <header>
+    <div class="left">
+      <div class="logo-sm">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+             alt="ISD"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="fallback" style="display:none;">🏫</div>
+      </div>
+      <div class="user-info">
+        <span class="name" id="userLabel">--</span>
+        <span class="role" id="roleLabel">--</span>
+      </div>
+    </div>
+    <button onclick="doLogout()">Logout</button>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span>Today's Progress</span>
+      <span id="progPct">--</span>
+    </div>
+    <div class="progress"><div id="progBar"></div></div>
+  </div>
+
+  <div class="container">
+    <div class="card" style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;font-weight:700;color:var(--muted);">📍 GPS Status</span>
+      <span class="badge b-warn" id="gpsBadge">Acquiring...</span>
+    </div>
+
+    <div class="card">
+      <h3>📷 Scan Washroom QR</h3>
+      <div id="reader" class="hidden"></div>
+      <button onclick="startScan()" id="scanBtn">📷 Open Camera</button>
+      <button onclick="stopScan()" id="stopBtn" class="ghost hidden">⏹ Stop Camera</button>
+    </div>
+
+    <div class="card hidden" id="detailCard">
+      <h3 id="wcTitle">--</h3>
+      <div class="info-row"><span class="lbl">📍 Location</span><span class="val" id="wcLoc">--</span></div>
+      <div class="info-row"><span class="lbl">🚻 Type</span><span class="val" id="wcType">--</span></div>
+      <div class="info-row"><span class="lbl">🧭 Orientation</span><span class="val" id="wcOri">--</span></div>
+      <div class="info-row"><span class="lbl">🏷 Zone</span><span class="val" id="wcZone">--</span></div>
+      <div class="info-row"><span class="lbl">🔄 Version</span><span class="val" id="wcVer">--</span></div>
+      <div style="margin-top:12px;" id="gpsCheck"></div>
+      <label style="display:block;margin-top:14px;font-weight:700;font-size:13px;color:var(--isd-teal);">
+        📝 Remarks (optional)
+      </label>
+      <textarea id="remarks" rows="2" placeholder="e.g., Cleaned, soap refilled..."></textarea>
+      <label style="display:block;margin-top:14px;font-weight:700;font-size:13px;color:var(--isd-teal);">
+        📸 Photos <span style="color:#999;font-weight:500;">(recommended)</span>
+      </label>
+      <div class="photo-row">
+        <button onclick="document.getElementById('fileIn').click()" class="ghost">📁 Upload</button>
+        <button onclick="document.getElementById('camIn').click()" class="ghost">📷 Capture</button>
+      </div>
+      <input id="fileIn" type="file" accept="image/*" multiple capture="environment" class="hidden">
+      <input id="camIn" type="file" accept="image/*" capture="environment" class="hidden">
+      <div class="thumbs" id="thumbs"></div>
+      <button class="ok big" onclick="submitInspection()" id="submitBtn">
+        ✅ CHECKED &amp; SUBMIT
+      </button>
+      <button class="ghost" onclick="resetForm()">↻ Reset</button>
+    </div>
+
+    <div class="card">
+      <h3>🕐 My Recent Scans</h3>
+      <div id="recentList" style="font-size:13px;color:#999;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<div id="loading"><div class="spinner"></div><div id="loadingMsg">Loading...</div></div>
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG — Backend API URL
+   ═══════════════════════════════════════════════ */
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+let session = null;
+let currentWc = null;
+let coords = null;
+let photos = [];
+let scanner = null;
+
+/* ═══════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', init);
+
+function init() {
+  // Load shift info (for login screen display)
+  loadShiftInfo();
+
+  // Check for existing session
+  const saved = localStorage.getItem('isd_session');
+  if (saved) {
+    try {
+      session = JSON.parse(saved);
+      const age = Date.now() - (session.loginTime || 0);
+      const maxAge = 10 * 3600 * 1000; // 10 hours
+      if (age < maxAge) {
+        showApp();
+        // Handle QR deep-link
+        const p = new URLSearchParams(location.search);
+        if (p.get('c')) {
+          setTimeout(() => {
+            onScanSuccess(p.get('c'));
+            history.replaceState({}, '', location.pathname);
+          }, 400);
+        }
+        return;
+      }
+    } catch(_) {}
+    localStorage.removeItem('isd_session');
+  }
+  showLogin();
+}
+
+/* ═══════════════════════════════════════════════
+   SHIFT INFO
+   ═══════════════════════════════════════════════ */
+function loadShiftInfo() {
+  fetch(API + '?action=shiftInfo')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok) return;
+      const el = document.getElementById('shiftInfo');
+      const txt = document.getElementById('shiftInfoText');
+
+      if (data.isWithinShift) {
+        txt.textContent = '🟢 Shift open · ' + data.shiftStart + ' – ' + data.shiftEnd;
+        el.classList.add('open');
+      } else {
+        txt.textContent = '🟡 ' + data.currentReason;
+      }
+    })
+    .catch(() => {
+      document.getElementById('shiftInfoText').textContent = '⚠️ Could not load shift info';
+    });
+}
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+   ═══════════════════════════════════════════════ */
+async function doLogin() {
+  const staffId = document.getElementById('staffId').value.trim();
+  const pin     = document.getElementById('pin').value.trim();
+  const msg     = document.getElementById('loginMsg');
+  const btn     = document.getElementById('loginBtn');
+
+  if (!staffId || !pin) {
+    msg.textContent = '⚠️ Enter Staff ID and PIN';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Signing in...';
+  msg.textContent = '';
+
+  try {
+    const url = API
+      + '?action=login'
+      + '&staffId=' + encodeURIComponent(staffId)
+      + '&pin=' + encodeURIComponent(pin)
+      + '&deviceInfo=' + encodeURIComponent(navigator.userAgent.substring(0, 120));
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      msg.textContent = '❌ ' + (data.error || 'Login failed');
+      btn.disabled = false;
+      btn.textContent = '🔐 Login';
+      return;
+    }
+
+    data.loginTime = Date.now();
+    session = data;
+    localStorage.setItem('isd_session', JSON.stringify(data));
+    showApp();
+    toast('✅ Welcome ' + data.name + '!');
+  } catch (err) {
+    console.error('Login error:', err);
+    msg.textContent = '❌ ' + (err.message || 'Network error');
+    btn.disabled = false;
+    btn.textContent = '🔐 Login';
+  }
+}
+
+async function doLogout() {
+  if (!confirm('Log out?')) return;
+  try {
+    await fetch(API + '?action=logout&token=' + encodeURIComponent(session.token));
+  } catch(_) {}
+  localStorage.removeItem('isd_session');
+  session = null;
+  location.reload();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   SCREEN SWITCHING
+   ═══════════════════════════════════════════════ */
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userLabel').textContent = session.name;
+  document.getElementById('roleLabel').textContent = session.role;
+  startGPS();
+  loadProgress();
+  loadRecent();
+}
+
+/* ═══════════════════════════════════════════════
+   GPS
+   ═══════════════════════════════════════════════ */
+function startGPS() {
+  if (!navigator.geolocation) { setGpsBadge('Not supported', 'b-bad'); return; }
+  navigator.geolocation.watchPosition(
+    pos => {
+      coords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        acc: Math.round(pos.coords.accuracy)
+      };
+      setGpsBadge('±' + coords.acc + 'm', coords.acc <= 30 ? 'b-ok' : 'b-warn');
+      if (currentWc) checkGeofence();
+    },
+    err => { setGpsBadge('Denied', 'b-bad'); },
+    { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
+  );
+}
+
+function setGpsBadge(text, cls) {
+  const b = document.getElementById('gpsBadge');
+  b.textContent = '📍 ' + text;
+  b.className = 'badge ' + cls;
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R=6371000, r=x=>x*Math.PI/180;
+  const dLat=r(lat2-lat1), dLon=r(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function checkGeofence() {
+  if (!currentWc || !coords) return;
+  const d = haversine(coords.lat, coords.lng, currentWc.lat, currentWc.lng);
+  const el = document.getElementById('gpsCheck');
+  if (d <= 50) {
+    el.innerHTML = '<span class="badge b-ok">✅ Within range (' + d.toFixed(1) + 'm)</span>';
+  } else {
+    el.innerHTML = '<span class="badge b-bad">⚠️ ' + d.toFixed(1) + 'm away — will be flagged</span>';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   QR SCANNER
+   ═══════════════════════════════════════════════ */
+async function startScan() {
+  const reader = document.getElementById('reader');
+  const scanBtn = document.getElementById('scanBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  reader.classList.remove('hidden');
+  scanBtn.classList.add('hidden');
+  stopBtn.classList.remove('hidden');
+  reader.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;">⏳ Starting camera...</div>';
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    handleCameraError('Your browser does not support camera. Please use Chrome/Safari on your phone.');
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    stream.getTracks().forEach(t => t.stop());
+
+    reader.innerHTML = '';
+    scanner = new Html5Qrcode('reader');
+
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      onScanSuccess,
+      () => {}
+    );
+  } catch (err) {
+    console.error('Camera error:', err);
+    let msg = 'Camera error';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      msg = 'Camera permission denied. Allow camera access in settings.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      msg = 'No camera found. Please use a phone.';
+    } else if (err.name === 'NotReadableError') {
+      msg = 'Camera in use by another app.';
+    } else if (err.message) {
+      msg = err.message;
+    }
+    handleCameraError(msg);
+  }
+}
+
+function handleCameraError(msg) {
+  const reader = document.getElementById('reader');
+  const scanBtn = document.getElementById('scanBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  reader.innerHTML =
+    '<div style="padding:32px 20px;text-align:center;color:#fff;">'
+      + '<div style="font-size:44px;margin-bottom:14px;">📷</div>'
+      + '<div style="font-size:14px;font-weight:700;line-height:1.5;margin-bottom:18px;">' + msg + '</div>'
+      + '<button onclick="manualEntry()" style="background:#38D430;color:#fff;border:none;'
+      + 'padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;'
+      + 'font-family:inherit;">⌨️ Enter Code Manually</button>'
+      + '<button onclick="stopScan()" style="background:rgba(255,255,255,.15);color:#fff;'
+      + 'border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;'
+      + 'margin-left:8px;margin-top:12px;cursor:pointer;font-family:inherit;">Cancel</button>'
+    + '</div>';
+
+  scanBtn.classList.remove('hidden');
+  stopBtn.classList.add('hidden');
+  toast('❌ ' + msg);
+}
+
+function manualEntry() {
+  const code = prompt('Enter Washroom Code:\n(e.g., WC-TEST-001)');
+  if (code && code.trim()) {
+    onScanSuccess(code.trim());
+  }
+}
+
+async function stopScan() {
+  if (scanner) {
+    try { await scanner.stop(); scanner.clear(); } catch(_) {}
+    scanner = null;
+  }
+  document.getElementById('reader').classList.add('hidden');
+  document.getElementById('scanBtn').classList.remove('hidden');
+  document.getElementById('stopBtn').classList.add('hidden');
+}
+
+async function onScanSuccess(text) {
+  await stopScan();
+  showLoading('Looking up washroom...');
+
+  let code = text;
+  try {
+    if (text.indexOf('?c=') > -1 || text.indexOf('&c=') > -1) {
+      const url = new URL(text);
+      code = url.searchParams.get('c') || text;
+    }
+  } catch(_) {}
+
+  code = String(code).trim();
+  if (!code) { hideLoading(); toast('❌ Invalid QR'); return; }
+
+  try {
+    const res = await fetch(API + '?action=getWashroom&code=' + encodeURIComponent(code));
+    const data = await res.json();
+    hideLoading();
+
+    if (!data.ok) { toast('❌ ' + data.error); return; }
+    const w = data.washroom;
+
+    if (String(w.status).toLowerCase() !== 'active') {
+      alert('⛔ This washroom is currently:\n\n' + w.status + '\n\nScanning not allowed.');
+      return;
+    }
+    if (w.scanPermission === 'disabled') {
+      alert('⛔ Scanning disabled by admin for ' + code + '.');
+      return;
+    }
+    if (w.scanPermission === 'restricted'
+        && w.allowedRoles.length
+        && w.allowedRoles.indexOf(session.role) === -1) {
+      alert('🔒 Restricted washroom.\nOnly [' + w.allowedRoles.join(', ') + '] can scan.');
+      return;
+    }
+
+    currentWc = w;
+    renderWashroom(w);
+    toast('✅ ' + w.code + ' detected');
+  } catch (err) {
+    hideLoading();
+    toast('❌ Network error');
+  }
+}
+
+function renderWashroom(w) {
+  document.getElementById('wcTitle').textContent = '🚻 ' + w.code;
+  document.getElementById('wcLoc').textContent  = w.location;
+  document.getElementById('wcType').textContent = w.type;
+  document.getElementById('wcOri').textContent  = w.orientation || '—';
+  document.getElementById('wcZone').textContent = w.zone || '—';
+  document.getElementById('wcVer').textContent  = 'v' + (w.version || 1);
+  document.getElementById('detailCard').classList.remove('hidden');
+  if (coords) checkGeofence();
+  document.getElementById('detailCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ═══════════════════════════════════════════════
+   PHOTOS
+   ═══════════════════════════════════════════════ */
+document.getElementById('fileIn').addEventListener('change', handlePhotos);
+document.getElementById('camIn').addEventListener('change', handlePhotos);
+
+function handlePhotos(e) {
+  const files = Array.from(e.target.files || []);
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { toast('⚠️ Photo too large (max 5MB)'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      photos.push({ mimeType: file.type, data: ev.target.result.split(',')[1] });
+      renderThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function renderThumbs() {
+  document.getElementById('thumbs').innerHTML = photos.map((p, i) =>
+    '<div class="thumb">'
+    + '<img src="data:' + p.mimeType + ';base64,' + p.data + '" alt="photo">'
+    + '<button class="rm" onclick="removePhoto(' + i + ')" type="button">×</button>'
+    + '</div>'
+  ).join('');
+}
+
+function removePhoto(i) {
+  photos.splice(i, 1);
+  renderThumbs();
+}
+
+/* ═══════════════════════════════════════════════
+   SUBMIT INSPECTION
+   ═══════════════════════════════════════════════ */
+async function submitInspection() {
+  if (!currentWc) { toast('⚠️ Scan a QR first'); return; }
+  if (!coords)    { toast('⚠️ Wait for GPS signal'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting...';
+  showLoading(photos.length ? 'Uploading ' + photos.length + ' photo(s)...' : 'Submitting...');
+
+  try {
+    const params = [
+      'action=submit',
+      'token=' + encodeURIComponent(session.token),
+      'code=' + encodeURIComponent(currentWc.code),
+      'remarks=' + encodeURIComponent(document.getElementById('remarks').value.trim()),
+      'lat=' + coords.lat,
+      'lng=' + coords.lng,
+      'photos=' + encodeURIComponent(JSON.stringify(photos)),
+      'deviceInfo=' + encodeURIComponent(navigator.userAgent.substring(0, 120))
+    ].join('&');
+
+    const res = await fetch(API + '?' + params);
+    const data = await res.json();
+    hideLoading();
+
+    if (!data.ok) {
+      toast('❌ ' + data.error);
+      alert('❌ Submission failed:\n\n' + data.error);
+      btn.disabled = false;
+      btn.textContent = '✅ CHECKED & SUBMIT';
+      return;
+    }
+
+    const statusText = data.status === 'OK' ? '✅ Verified' : '⚠️ GPS Mismatch';
+    toast('✅ Submitted — ' + statusText + ' (' + data.distance + 'm)');
+    alert('✅ Inspection recorded!\n\n'
+      + 'Washroom: ' + currentWc.code + '\n'
+      + 'Status: ' + statusText + '\n'
+      + 'Distance: ' + data.distance + 'm\n'
+      + 'Time: ' + new Date(data.timestamp).toLocaleTimeString());
+    resetForm();
+    loadProgress();
+    loadRecent();
+  } catch (err) {
+    hideLoading();
+    toast('❌ Network error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = '✅ CHECKED & SUBMIT';
+  }
+}
+
+function resetForm() {
+  currentWc = null;
+  photos = [];
+  document.getElementById('detailCard').classList.add('hidden');
+  document.getElementById('thumbs').innerHTML = '';
+  document.getElementById('remarks').value = '';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  btn.textContent = '✅ CHECKED & SUBMIT';
+}
+
+/* ═══════════════════════════════════════════════
+   PROGRESS + RECENT
+   ═══════════════════════════════════════════════ */
+async function loadProgress() {
+  try {
+    const res = await fetch(API + '?action=getDashboard&token=' + encodeURIComponent(session.token));
+    const data = await res.json();
+    if (!data.ok) return;
+    const pct = data.total ? (data.checked / data.total * 100) : 0;
+    document.getElementById('progBar').style.width = pct + '%';
+    document.getElementById('progPct').textContent =
+      data.checked + ' / ' + data.total + ' (' + data.compliance + '%)';
+  } catch(_) {}
+}
+
+async function loadRecent() {
+  try {
+    const res = await fetch(API + '?action=getDashboard&token=' + encodeURIComponent(session.token));
+    const data = await res.json();
+    if (!data.ok) return;
+    const list = document.getElementById('recentList');
+    if (!data.recent.length) {
+      list.innerHTML = '<div style="color:#999;text-align:center;padding:12px;">No scans yet today</div>';
+      return;
+    }
+    list.innerHTML = data.recent.slice(0, 8).map(r => {
+      const ok = r.status === 'OK';
+      const badge = ok
+        ? '<span class="badge b-ok" style="font-size:9px;padding:3px 8px;">OK</span>'
+        : '<span class="badge b-bad" style="font-size:9px;padding:3px 8px;">GPS</span>';
+      const t = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      return '<div class="list-row">'
+        + '<div>' + badge + ' <b>' + r.code + '</b></div>'
+        + '<div class="meta">' + t + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(_) {}
+}
+
+/* ═══════════════════════════════════════════════
+   UI HELPERS
+   ═══════════════════════════════════════════════ */
+function showLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg || 'Loading...';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTid);
+  window._toastTid = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
