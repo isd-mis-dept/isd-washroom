@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ISD Dashboard">
+<link rel="manifest" href="manifest.json">
+<title>ISD Washroom Dashboard</title>
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;--isd-teal-light:#0A6B62;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;--isd-orange:#FF5C35;
+    --isd-white:#FFFFFF;--isd-gray:#F5F7F6;--isd-light-teal:#E6F2F0;
+    --bg:#F5F7F6;--card:#FFFFFF;--text:#004C45;--muted:#5C7B77;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);overscroll-behavior-y:contain;}
+  body{min-height:100vh;padding-top:var(--safe-t);}
+
+  header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,76,69,.3);}
+  header .title{display:flex;align-items:center;gap:10px;}
+  header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+  header .logo-sm img{max-width:100%;max-height:100%;object-fit:contain;}
+  header .logo-sm .fallback{font-size:20px;}
+  header .title-text{display:flex;flex-direction:column;}
+  header h1{margin:0;font-size:15px;font-weight:800;line-height:1.2;}
+  header .role{font-size:10px;color:var(--isd-yellow);text-transform:uppercase;
+    letter-spacing:.8px;font-weight:700;}
+  header button{background:rgba(255,255,255,.15);color:#fff;border:none;
+    padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;
+    cursor:pointer;transition:background .2s;}
+  header button:active{background:rgba(255,255,255,.3);}
+
+  .container{max-width:640px;margin:0 auto;padding:14px;
+    padding-bottom:calc(40px + var(--safe-b));}
+
+  .login-prompt{background:#fff;border-radius:16px;padding:32px 24px;
+    text-align:center;box-shadow:0 4px 20px rgba(0,76,69,.1);
+    margin:40px auto;max-width:400px;}
+  .login-prompt .icon{font-size:56px;margin-bottom:12px;line-height:1;}
+  .login-prompt h2{margin:0 0 8px;font-size:20px;color:var(--isd-teal);font-weight:800;}
+  .login-prompt p{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.5;}
+  .login-prompt button{display:inline-block;padding:14px 32px;
+    background:var(--isd-teal);color:#fff;border-radius:10px;border:none;
+    font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;
+    box-shadow:0 4px 12px rgba(0,76,69,.3);}
+  .login-prompt button:active{transform:scale(.97);}
+
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .kpi{background:#fff;border-radius:14px;padding:16px;
+    box-shadow:0 2px 12px rgba(0,76,69,.08);transition:transform .15s;}
+  .kpi:active{transform:scale(.98);}
+  .kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;font-weight:800;}
+  .kpi .val{font-size:30px;font-weight:900;margin-top:6px;line-height:1;
+    color:var(--isd-teal);}
+  .kpi .sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;}
+  .kpi.ok .val{color:#1F7A1B;}
+  .kpi.bad .val{color:#C93B14;}
+  .kpi.warn .val{color:#8A6400;}
+
+  .section{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;
+    box-shadow:0 2px 12px rgba(0,76,69,.08);}
+  .section-head{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;}
+  .section h3{margin:0;font-size:15px;font-weight:800;color:var(--isd-teal);}
+  .section .count{font-size:12px;color:var(--muted);font-weight:700;
+    background:var(--isd-light-teal);padding:3px 10px;border-radius:12px;}
+
+  .bar{height:12px;background:#E0E8E6;border-radius:8px;overflow:hidden;margin:10px 0 6px;}
+  .bar > div{height:100%;background:linear-gradient(90deg,#38D430,#2BA824);
+    transition:width .8s cubic-bezier(.4,0,.2,1);border-radius:8px;width:0%;}
+  .bar.warn > div{background:linear-gradient(90deg,#FFDA00,#D4B500);}
+  .bar.bad > div{background:linear-gradient(90deg,#FF5C35,#C93B14);}
+  .progress-text{font-size:12px;color:var(--muted);text-align:right;font-weight:700;}
+
+  .missed-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .missed-chip{background:#FFE0D6;color:#C93B14;padding:6px 12px;
+    border-radius:20px;font-size:12px;font-weight:800;
+    border:1px solid #FFC5B3;font-family:'SF Mono',Consolas,monospace;}
+  .missed-empty{color:#1F7A1B;text-align:center;padding:14px;font-size:14px;
+    font-weight:700;background:#DFF9DD;border-radius:10px;}
+
+  .activity-row{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid #F0F4F3;font-size:13px;gap:8px;}
+  .activity-row:last-child{border-bottom:none;padding-bottom:0;}
+  .activity-row:first-child{padding-top:0;}
+  .activity-row .who{font-weight:700;flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;}
+  .activity-row .wc{font-family:'SF Mono',Consolas,monospace;font-size:12px;
+    background:var(--isd-light-teal);color:var(--isd-teal);
+    padding:3px 8px;border-radius:6px;font-weight:800;white-space:nowrap;}
+  .activity-row .time{font-size:11px;color:var(--muted);white-space:nowrap;
+    font-variant-numeric:tabular-nums;font-weight:600;}
+  .badge-ok{background:#DFF9DD;color:#1F7A1B;padding:3px 8px;
+    border-radius:10px;font-size:10px;font-weight:800;letter-spacing:.3px;}
+  .badge-bad{background:#FFE0D6;color:#C93B14;padding:3px 8px;
+    border-radius:10px;font-size:10px;font-weight:800;letter-spacing:.3px;}
+
+  .staff-row{display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;border-bottom:1px solid #F0F4F3;font-size:14px;}
+  .staff-row:last-child{border-bottom:none;padding-bottom:0;}
+  .staff-row .name{font-weight:700;display:flex;align-items:center;gap:8px;}
+  .staff-row .cnt{font-weight:800;color:#1F7A1B;background:#DFF9DD;
+    padding:4px 12px;border-radius:20px;font-size:12px;}
+  .staff-row .rank{display:inline-block;width:22px;height:22px;
+    line-height:22px;text-align:center;background:var(--isd-light-teal);
+    color:var(--isd-teal);border-radius:50%;font-size:11px;
+    font-weight:800;flex-shrink:0;}
+
+  .empty{text-align:center;color:#999;font-size:13px;padding:20px;}
+  .empty .icon{font-size:32px;display:block;margin-bottom:8px;opacity:.5;}
+
+  .skeleton{background:linear-gradient(90deg,#F0F4F3 25%,#E0E8E6 50%,#F0F4F3 75%);
+    background-size:200% 100%;animation:shimmer 1.5s infinite;
+    border-radius:6px;height:14px;margin:8px 0;}
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+  #toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;
+    transform:translateX(-50%) translateY(120px);background:var(--isd-teal);color:#fff;
+    padding:12px 22px;border-radius:10px;font-size:13px;font-weight:700;
+    opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:9999;
+    max-width:calc(100% - 40px);box-shadow:0 8px 24px rgba(0,76,69,.35);
+    text-align:center;pointer-events:none;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .hidden{display:none!important;}
+  @media (min-width:640px){
+    .kpi-grid{grid-template-columns:repeat(4,1fr);}
+    header h1{font-size:17px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <div class="logo-sm">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+           alt="ISD"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="fallback" style="display:none;">🏫</div>
+    </div>
+    <div class="title-text">
+      <h1>Washroom Dashboard</h1>
+      <span class="role" id="userRole">--</span>
+    </div>
+  </div>
+  <button onclick="loadDashboard()" id="refreshBtn">🔄 Refresh</button>
+</header>
+
+<div id="loadingPrompt" class="login-prompt">
+  <div class="icon">⏳</div>
+  <h2>Loading dashboard...</h2>
+</div>
+
+<div id="loginPrompt" class="login-prompt hidden">
+  <div class="icon">🔐</div>
+  <h2>Login Required</h2>
+  <p>Please login from the scanner app to view the dashboard.</p>
+  <button onclick="goTo('app')">Open Scanner App →</button>
+</div>
+
+<div class="container hidden" id="dataWrap">
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Total Active</div><div class="val" id="k_total">--</div><div class="sub" id="k_total_sub">washrooms</div></div>
+    <div class="kpi ok"><div class="label">Checked Today</div><div class="val" id="k_checked">--</div><div class="sub" id="k_checked_sub">this day</div></div>
+    <div class="kpi bad"><div class="label">Missed</div><div class="val" id="k_missed">--</div><div class="sub" id="k_missed_sub">needs attention</div></div>
+    <div class="kpi" id="kpi_comp_box"><div class="label">Compliance</div><div class="val" id="k_comp">--</div><div class="sub" id="k_comp_sub">today</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>📈 Today's Progress</h3><span class="count" id="progressCount">0 / 0</span></div>
+    <div class="bar" id="progressBarWrap"><div id="progressBar"></div></div>
+    <div class="progress-text" id="progressPct">0%</div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>⚠️ Missed Washrooms</h3><span class="count" id="missedCount">0</span></div>
+    <div id="missedWrap"><div class="skeleton"></div><div class="skeleton" style="width:80%;"></div></div>
+  </div>
+
+  <div class="section hidden" id="gpsSection">
+    <div class="section-head"><h3>🚨 GPS Mismatches</h3><span class="count" id="gpsCount">0</span></div>
+    <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.5;">
+      Inspections flagged because staff scanned from &gt;50m away.
+      <button onclick="goTo('admin')" style="background:none;border:none;color:var(--isd-teal);font-weight:700;cursor:pointer;padding:0;font-size:13px;text-decoration:underline;font-family:inherit;">View in admin →</button>
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>🔴 Live Activity</h3><span class="count" id="activityCount">0</span></div>
+    <div id="activityWrap"><div class="skeleton"></div><div class="skeleton" style="width:70%;"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>👥 Staff Performance</h3><span class="count" id="staffCount">0</span></div>
+    <div id="staffWrap"><div class="skeleton"></div><div class="skeleton" style="width:75%;"></div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════ */
+var API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+var REFRESH_INTERVAL = 60000;
+
+/* ═══════════════════════════════════════════════
+   JSONP HELPER
+   ═══════════════════════════════════════════════ */
+var _jsonpCounter = 0;
+
+function jsonp(params) {
+  return new Promise(function(resolve, reject) {
+    var callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    var timeoutMs = 30000;
+
+    var query = Object.keys(params)
+      .map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
+      })
+      .join('&');
+    var url = API + '?' + query + '&callback=' + callbackName;
+
+    var scriptEl = null;
+    var timeoutId = null;
+
+    function cleanup() {
+      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      if (timeoutId) clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    timeoutId = setTimeout(function() {
+      cleanup();
+      reject(new Error('Request timeout'));
+    }, timeoutMs);
+
+    scriptEl = document.createElement('script');
+    scriptEl.src = url;
+    scriptEl.onerror = function() {
+      cleanup();
+      reject(new Error('Network error'));
+    };
+    document.head.appendChild(scriptEl);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+var session = null;
+var refreshTimer = null;
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════ */
+function goTo(page) {
+  window.location.href = page + '.html';
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', init);
+
+function init() {
+  try {
+    var saved = localStorage.getItem('isd_session');
+    if (!saved) { showLoginPrompt(); return; }
+    session = JSON.parse(saved);
+    var age = Date.now() - (session.loginTime || 0);
+    if (age > 10 * 3600 * 1000) {
+      localStorage.removeItem('isd_session');
+      showLoginPrompt();
+      return;
+    }
+    document.getElementById('loadingPrompt').classList.add('hidden');
+    document.getElementById('dataWrap').classList.remove('hidden');
+    document.getElementById('userRole').textContent =
+      (session.role || 'viewer').toUpperCase() + ' · ' + (session.name || '');
+    loadDashboard();
+    refreshTimer = setInterval(loadDashboard, REFRESH_INTERVAL);
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) loadDashboard();
+    });
+  } catch(err) { showLoginPrompt(); }
+}
+
+function showLoginPrompt() {
+  document.getElementById('loadingPrompt').classList.add('hidden');
+  document.getElementById('loginPrompt').classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD DASHBOARD
+   ═══════════════════════════════════════════════ */
+function loadDashboard() {
+  if (!session || !session.token) return;
+  var refreshBtn = document.getElementById('refreshBtn');
+  refreshBtn.textContent = '⏳';
+  refreshBtn.disabled = true;
+
+  jsonp({ action: 'getDashboard', token: session.token })
+    .then(function(data) {
+      if (!data.ok) {
+        if (data.error && data.error.toLowerCase().indexOf('session') > -1) {
+          localStorage.removeItem('isd_session');
+          showLoginPrompt();
+          return;
+        }
+        toast('❌ ' + data.error);
+        return;
+      }
+      renderDashboard(data);
+    })
+    .catch(function(err) {
+      toast('❌ ' + err.message);
+    })
+    .finally(function() {
+      refreshBtn.textContent = '🔄';
+      refreshBtn.disabled = false;
+    });
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════ */
+function renderDashboard(d) {
+  document.getElementById('k_total').textContent = d.total || 0;
+  document.getElementById('k_total_sub').textContent =
+    (d.totalAll && d.totalAll !== d.total) ? '+ ' + (d.totalAll - d.total) + ' inactive' : 'washrooms';
+  document.getElementById('k_checked').textContent = d.checked || 0;
+  document.getElementById('k_checked_sub').textContent = d.checked === 0 ? 'none yet' : 'today';
+  document.getElementById('k_missed').textContent = (d.missed || []).length;
+  document.getElementById('k_missed_sub').textContent = (d.missed || []).length === 0 ? '✓ all good' : 'needs attention';
+
+  var comp = parseFloat(d.compliance) || 0;
+  document.getElementById('k_comp').textContent = comp + '%';
+  document.getElementById('k_comp_sub').textContent =
+    comp >= 90 ? '✓ excellent' : comp >= 70 ? 'good' : comp >= 50 ? 'needs work' : 'critical';
+
+  var kpiComp = document.getElementById('kpi_comp_box');
+  kpiComp.classList.remove('ok','bad','warn');
+  if (comp >= 90) kpiComp.classList.add('ok');
+  else if (comp >= 70) kpiComp.classList.add('warn');
+  else kpiComp.classList.add('bad');
+
+  var pct = d.total ? Math.min(100, (d.checked / d.total) * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = d.checked + ' / ' + d.total;
+  document.getElementById('progressPct').textContent = pct.toFixed(1) + '%';
+  var barWrap = document.getElementById('progressBarWrap');
+  barWrap.classList.remove('warn','bad');
+  if (pct < 50) barWrap.classList.add('bad');
+  else if (pct < 80) barWrap.classList.add('warn');
+
+  var missed = d.missed || [];
+  document.getElementById('missedCount').textContent = missed.length;
+  var mw = document.getElementById('missedWrap');
+  if (missed.length === 0) {
+    mw.innerHTML = '<div class="missed-empty">✅ All washrooms checked today!</div>';
+  } else {
+    mw.innerHTML = '<div class="missed-list">' +
+      missed.map(function(c) { return '<span class="missed-chip">' + esc(c) + '</span>'; }).join('') + '</div>';
+  }
+
+  var gpsSection = document.getElementById('gpsSection');
+  if (d.gpsIssues > 0) {
+    gpsSection.classList.remove('hidden');
+    document.getElementById('gpsCount').textContent = d.gpsIssues;
+  } else {
+    gpsSection.classList.add('hidden');
+  }
+
+  var recent = d.recent || [];
+  document.getElementById('activityCount').textContent = recent.length;
+  var aw = document.getElementById('activityWrap');
+  if (recent.length === 0) {
+    aw.innerHTML = '<div class="empty"><span class="icon">📭</span>No inspections yet today.</div>';
+  } else {
+    aw.innerHTML = recent.slice(0, 20).map(function(r) {
+      var ok = r.status === 'OK';
+      var badge = ok ? '<span class="badge-ok">OK</span>' : '<span class="badge-bad">GPS</span>';
+      return '<div class="activity-row">'
+        + '<span class="who">' + esc(r.staffName || r.staff || 'Unknown') + '</span>'
+        + '<span class="wc">' + esc(r.code) + '</span>'
+        + badge
+        + '<span class="time">' + formatTime(r.ts) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  var staff = (d.staffPerformance || []).slice().sort(function(a,b){ return b.count - a.count; }).slice(0, 10);
+  document.getElementById('staffCount').textContent = staff.length;
+  var sw = document.getElementById('staffWrap');
+  if (staff.length === 0) {
+    sw.innerHTML = '<div class="empty"><span class="icon">👥</span>No staff activity today.</div>';
+  } else {
+    sw.innerHTML = staff.map(function(s, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+      return '<div class="staff-row">'
+        + '<span class="name">'
+        + (medal ? medal + ' ' : '<span class="rank">' + (i + 1) + '</span>')
+        + esc(s.id)
+        + '</span>'
+        + '<span class="cnt">' + s.count + ' ' + (s.count === 1 ? 'inspection' : 'inspections') + '</span>'
+        + '</div>';
+    }).join('');
+  }
+}
+
+function esc(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function formatTime(ts) {
+  try {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '--:--';
+    var now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } catch (_) { return '--:--'; }
+}
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTid);
+  window._toastTid = setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+window.addEventListener('beforeunload', function() {
+  if (refreshTimer) clearInterval(refreshTimer);
+});
+</script>
+</body>
+</html>
