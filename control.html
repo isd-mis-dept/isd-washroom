@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
-<title>ISD Control Panel</title>
+<title>ISD Control Center</title>
 <style>
   :root{--isd-teal:#004C45;--isd-green:#38D430;--isd-orange:#FF5C35;--bg:#F5F7F6;--muted:#5C7B77;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
+  
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:#E6F2F0; white-space:nowrap; }
   .top-nav a.active { background:var(--isd-teal); color:#fff; }
+
   .container{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
   h1{font-size:20px;font-weight:800;margin-bottom:4px;}
   .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
@@ -37,12 +39,13 @@
   <a href="qr-generator.html">🖨️ QRs</a>
 </nav>
 <div class="container">
-  <h1>System Control</h1>
-  <div class="sub">Manage URLs, Email Templates, and Shift Settings.</div>
+  <h1>System Control Center</h1>
+  <div class="sub">Manage App Identity, API URL, Email Templates, and Shift Settings.</div>
   <div id="content">Loading...</div>
 </div>
 <script>
-const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+// ⚠️ This is the ONLY hardcoded URL. The admin changes this here, and it updates everywhere else.
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec'; 
 let session = null;
 
 let _jsonpCounter = 0;
@@ -81,9 +84,30 @@ function loadConfig() {
 function renderUI(cfg) {
   let html = `
     <div class="card">
+      <h3>🏫 App Identity & Branding</h3>
+      <label>School Name</label>
+      <input type="text" id="cfg_SchoolName" value="${cfg.SchoolName || 'International School Dhaka'}">
+      
+      <label>App Name (Header Title)</label>
+      <input type="text" id="cfg_AppName" value="${cfg.AppName || 'ISD Washroom'}">
+      
+      <label>Logo URL</label>
+      <input type="text" id="cfg_LogoUrl" value="${cfg.LogoUrl || ''}">
+      
+      <label>Brand Color (Hex)</label>
+      <input type="color" id="cfg_BrandColor" value="${cfg.BrandColor || '#004C45'}">
+    </div>
+
+    <div class="card">
+      <h3>🔌 API Configuration</h3>
+      <label>Google Apps Script URL</label>
+      <input type="text" id="cfg_API_URL" value="${cfg.API_URL || '${API}'}">
+    </div>
+    
+    <div class="card">
       <h3>🌐 Public Base URL</h3>
       <label>The live URL of the scanner app</label>
-      <input type="text" id="cfg_PublicBase" value="${cfg.PublicBase || ''}">
+      <input type="text" id="cfg_PublicBase" value="${cfg.PublicBase || 'https://isd-mis-dept.github.io/isd-washroom/app.html'}">
     </div>
     
     <div class="card">
@@ -94,15 +118,8 @@ function renderUI(cfg) {
       <label>Subject Line</label>
       <input type="text" id="cfg_EmailSubject" value="${cfg.EmailSubject || ''}">
       
-      <label>Insert Dynamic Tags (Click to Append)</label>
-      <div class="tag-box">
-        <span class="tag" onclick="appendTag('cfg_EmailSubject', '[date]')">[date]</span>
-        <span class="tag" onclick="appendTag('cfg_EmailSubject', '[compliance]')">[compliance]</span>
-      </div>
-      
       <label>Email Body</label>
       <textarea id="cfg_EmailBody" rows="6">${cfg.EmailBody || ''}</textarea>
-      <label>Insert Dynamic Tags (Click to Append)</label>
       <div class="tag-box">
         <span class="tag" onclick="appendTag('cfg_EmailBody', '[date]')">[date]</span>
         <span class="tag" onclick="appendTag('cfg_EmailBody', '[compliance]')">[compliance]</span>
@@ -130,14 +147,18 @@ function renderUI(cfg) {
 function appendTag(id, tag) {
   const el = document.getElementById(id);
   const start = el.selectionStart;
-  const end = el.selectionEnd;
-  el.value = el.value.substring(0, start) + tag + el.value.substring(end);
+  el.value = el.value.substring(0, start) + tag + el.value.substring(el.selectionEnd);
   el.focus();
   el.selectionStart = el.selectionEnd = start + tag.length;
 }
 
 function saveAll() {
   const updates = {
+    SchoolName: document.getElementById('cfg_SchoolName').value,
+    AppName: document.getElementById('cfg_AppName').value,
+    LogoUrl: document.getElementById('cfg_LogoUrl').value,
+    BrandColor: document.getElementById('cfg_BrandColor').value,
+    API_URL: document.getElementById('cfg_API_URL').value,
     PublicBase: document.getElementById('cfg_PublicBase').value,
     EmailRecipients: document.getElementById('cfg_EmailRecipients').value,
     EmailSubject: document.getElementById('cfg_EmailSubject').value,
@@ -155,8 +176,10 @@ function saveAll() {
     .then(res => {
       btn.textContent = '💾 Save Control Settings';
       btn.disabled = false;
-      if (res.ok) alert('✅ Settings saved!');
-      else alert('❌ Error: ' + res.error);
+      if (res.ok) {
+        alert('✅ Settings saved! Reloading to apply new Identity...');
+        window.location.reload(); 
+      } else alert('❌ Error: ' + res.error);
     })
     .catch(err => {
       btn.textContent = '💾 Save Control Settings';
