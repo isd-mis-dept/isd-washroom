@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ISD WC">
 <link rel="manifest" href="manifest.json">
 <title>ISD Washroom</title>
@@ -26,23 +25,10 @@
     padding-bottom:24px;
   }
   
-  /* Navigation Bar */
-  .navbar {
-    display: flex; gap: 8px; margin-bottom: 30px;
-    background: rgba(255,255,255,0.1);
-    padding: 8px; border-radius: 16px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .navbar a {
-    color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
-    padding: 10px 16px; border-radius: 10px;
-    transition: all 0.2s;
-  }
-  .navbar a:hover, .navbar a.active {
-    background: #fff; color: var(--isd-teal);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
+  /* Navigation Bar (Transparent for Home) */
+  .top-nav { display:flex; justify-content:center; gap:8px; background:rgba(255,255,255,0.1); padding:8px; border-radius:16px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); margin-bottom:30px; overflow-x:auto; max-width:90vw;}
+  .top-nav a { text-decoration:none; color:#fff; font-weight:800; font-size:13px; padding:10px 16px; border-radius:10px; white-space:nowrap; transition:all .2s; }
+  .top-nav a:hover, .top-nav a.active { background:#fff; color:var(--isd-teal); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
 
   .box{text-align:center;max-width:420px;width:100%;padding:0 24px;}
   .logo-wrap{
@@ -70,11 +56,6 @@
   }
   .btn:active{transform:scale(.97);box-shadow:0 4px 12px rgba(0,0,0,.25);}
   .btn .icon{font-size:22px;}
-  .btn.secondary{
-    background:rgba(255,255,255,.12);color:#fff;box-shadow:none;
-    font-weight:600;font-size:14px;padding:14px 20px;
-    border:1.5px solid rgba(255,255,255,.2);
-  }
   .foot{
     margin-top:36px;font-size:11px;opacity:.55;letter-spacing:1px;
     display:flex;align-items:center;justify-content:center;gap:6px;
@@ -101,11 +82,14 @@
 </head>
 <body>
 
-<!-- NAVIGATION MENU -->
-<nav class="navbar">
+<!-- UNIVERSAL NAVIGATION -->
+<nav class="top-nav">
   <a href="index.html" class="active">🏠 Home</a>
+  <a href="app.html">📷 Scanner</a>
   <a href="dashboard.html">📊 Dashboard</a>
   <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
   <a href="qr-generator.html">🖨️ QRs</a>
 </nav>
 
@@ -117,11 +101,11 @@
     <div class="fallback" style="display:none;">🏫</div>
   </div>
 
-  <h1>ISD Washroom</h1>
+  <h1 class="app-title">ISD Washroom</h1>
   <div class="sub">Inspection Management System</div>
-  <div class="school">International School Dhaka</div>
+  <div class="school" id="schoolName">International School Dhaka</div>
 
-  <button onclick="goTo('app')" class="btn">
+  <button onclick="window.location.href='app.html'" class="btn">
     <span class="icon">📷</span>
     <span>Open Scanner App</span>
   </button>
@@ -138,55 +122,64 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════
-const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+/* ═══════════════════════════════════════════════
+   DYNAMIC UI BOOTSTRAPPER
+   ═══════════════════════════════════════════════ */
+const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let GLOBAL_API = BOOTSTRAP_API;
 
-function goTo(page) {
-  window.location.href = page + '.html';
+function loadUIBootstrapper() {
+  return new Promise((resolve) => {
+    const cb = 'bootCb_' + Date.now();
+    window[cb] = function(data) {
+      delete window[cb];
+      if (data.ok) {
+        GLOBAL_API = data.API_URL || BOOTSTRAP_API;
+        
+        if (data.BrandColor) document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
+        if (data.AppName) document.querySelector('.app-title').textContent = data.AppName;
+        if (data.SchoolName) document.getElementById('schoolName').textContent = data.SchoolName;
+        if (data.LogoUrl) {
+          const logos = document.querySelectorAll('img[alt="ISD"]');
+          logos.forEach(img => img.src = data.LogoUrl);
+        }
+      }
+      resolve();
+    };
+    const s = document.createElement('script');
+    s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
+    s.onerror = function() { delete window[cb]; resolve(); };
+    document.head.appendChild(s);
+  });
 }
 
-// ═══════════════════════════════════════════════
-// JSONP HELPER (to fetch shift info)
-// ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   JSONP HELPER
+   ═══════════════════════════════════════════════ */
 let _jsonpCounter = 0;
 function jsonp(params) {
   return new Promise((resolve, reject) => {
     const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
-    const query = Object.keys(params)
-      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]))
-      .join('&');
-    const url = API + '?' + query + '&callback=' + callbackName;
-
+    const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
+    const url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
     let scriptEl = null;
-    let timeoutId = null;
-    function cleanup() {
-      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
-      if (timeoutId) clearTimeout(timeoutId);
-      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
-    }
-
+    function cleanup() { if (scriptEl) scriptEl.remove(); try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } }
     window[callbackName] = function(data) { cleanup(); resolve(data); };
-    timeoutId = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 30000);
-
-    scriptEl = document.createElement('script');
-    scriptEl.src = url;
-    scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); };
-    document.head.appendChild(scriptEl);
+    scriptEl = document.createElement('script'); scriptEl.src = url; scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); }; document.head.appendChild(scriptEl);
   });
 }
 
-// ═══════════════════════════════════════════════
-// FETCH SHIFT STATUS
-// ═══════════════════════════════════════════════
-(function loadShift() {
+/* ═══════════════════════════════════════════════
+   SHIFT STATUS
+   ═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadUIBootstrapper();
+  
   jsonp({ action: 'shiftInfo' })
     .then(data => {
       if (!data.ok) return;
       var text = document.getElementById('shiftText');
       var banner = document.getElementById('shiftBanner');
-
       if (data.isWithinShift) {
         text.textContent = '🟢 Shift open · ' + data.shiftStart + ' – ' + data.shiftEnd;
         banner.classList.add('open');
@@ -197,7 +190,7 @@ function jsonp(params) {
     .catch(() => {
       document.getElementById('shiftText').textContent = '⚠️ Could not load shift info';
     });
-})();
+});
 </script>
 </body>
 </html>
