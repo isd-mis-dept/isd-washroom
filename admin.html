@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ISD Admin">
 <link rel="manifest" href="manifest.json">
 <title>ISD Admin Panel</title>
@@ -179,6 +179,11 @@
     background:var(--isd-teal);color:#fff;border-radius:10px;border:none;
     font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;
     box-shadow:0 4px 12px rgba(0,76,69,.3);}
+
+  .loc-btn{margin-top:8px;background:var(--isd-light-teal);color:var(--isd-teal);
+    padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:800;
+    cursor:pointer;width:100%;font-family:inherit;transition:all .15s;}
+  .loc-btn:active{transform:scale(.98);}
 </style>
 </head>
 <body>
@@ -228,6 +233,8 @@
   </div>
 
   <div class="container hidden" id="staffTab">
+    <input id="searchStaff" class="search" placeholder="🔍 Search by name or ID..."
+           oninput="renderStaff()">
     <div id="staffList"></div>
   </div>
 
@@ -270,7 +277,7 @@
     <label>Longitude *</label>
     <input id="f_lng" type="number" step="0.000001" placeholder="90.4125">
 
-    <button class="loc-btn" onclick="useMyLocation()" style="margin-top:8px;background:var(--isd-light-teal);color:var(--isd-teal);padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;width:100%;">📍 Use my current location</button>
+    <button class="loc-btn" onclick="useMyLocation()">📍 Use my current location</button>
 
     <label>Zone</label>
     <input id="f_zone" placeholder="GroundFloor">
@@ -313,13 +320,13 @@
     <h2 id="staffModalTitle">Add Staff</h2>
     <div class="sub">New team member account</div>
 
-    <label>Staff ID *</label>
+    <label>Staff ID * <small id="staffIdHelp">(Cannot be changed after creation)</small></label>
     <input id="s_id" placeholder="HK-007">
 
     <label>Name *</label>
     <input id="s_name" placeholder="Ahmed Khan">
 
-    <label>PIN *</label>
+    <label>PIN * <small>(Leave blank to keep current PIN)</small></label>
     <input id="s_pin" type="password" placeholder="4-digit PIN" inputmode="numeric">
 
     <label>Role *</label>
@@ -335,6 +342,12 @@
 
     <label>Assigned Washrooms</label>
     <input id="s_assigned" placeholder="WC-GF-001,WC-GF-002 or ALL">
+
+    <label>Status</label>
+    <select id="s_active">
+      <option value="true">✅ Active (can login)</option>
+      <option value="false">⛔ Inactive (cannot login)</option>
+    </select>
 
     <div class="btn-row">
       <button class="btn-cancel" onclick="closeStaffModal()">Cancel</button>
@@ -390,6 +403,7 @@ function jsonp(params) {
 
 var session = null;
 var washrooms = [];
+var staffList = [];
 var editingCode = null;
 var editingStaffId = null;
 var currentTab = 'washrooms';
@@ -430,6 +444,9 @@ function fabClick() {
   else openAddModal();
 }
 
+/* ═══════════════════════════════════════════════
+   WASHROOMS
+   ═══════════════════════════════════════════════ */
 function loadWashrooms() {
   jsonp({ action: 'listWashrooms', token: session.token })
     .then(function(data) {
@@ -573,6 +590,9 @@ function toggleStatus(code, status) {
     .catch(function(err) { toast('❌ ' + err.message); });
 }
 
+/* ═══════════════════════════════════════════════
+   STAFF
+   ═══════════════════════════════════════════════ */
 function loadStaff() {
   jsonp({ action: 'getStaff', token: session.token })
     .then(function(data) {
@@ -580,20 +600,44 @@ function loadStaff() {
         document.getElementById('staffList').innerHTML = '<div class="empty">' + esc(data.error) + '</div>';
         return;
       }
-      if (!data.staff.length) {
-        document.getElementById('staffList').innerHTML = '<div class="empty">No staff yet. Tap + to add.</div>';
-        return;
-      }
-      document.getElementById('staffList').innerHTML = data.staff.map(function(s) {
-        return '<div class="card">'
-          + '<div class="code">' + esc(s.name) + '</div>'
-          + '<div class="meta">🆔 ' + esc(s.id) + ' · ' + esc(s.role) + ' · Zone: ' + esc(s.zone || 'ALL') + '</div>'
-          + (s.email ? '<div class="meta">📧 ' + esc(s.email) + '</div>' : '')
-          + '<div class="meta">' + (s.active ? '✅ Active' : '⛔ Inactive') + '</div>'
-          + '</div>';
-      }).join('');
+      staffList = data.staff;
+      renderStaff();
     })
     .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function renderStaff() {
+  var q = (document.getElementById('searchStaff').value || '').toLowerCase();
+  var filtered = staffList.filter(function(s) {
+    return !q || (s.name || '').toLowerCase().indexOf(q) > -1 || (s.id || '').toLowerCase().indexOf(q) > -1;
+  });
+  
+  var el = document.getElementById('staffList');
+  
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty">No staff found. Tap + to add.</div>';
+    return;
+  }
+  
+  el.innerHTML = filtered.map(function(s) {
+    var isActive = s.active === true;
+    return '<div class="card">'
+      + '<div class="row">'
+      + '<div>'
+      + '<div class="code">' + esc(s.name) + '</div>'
+      + '<div class="meta">🆔 ' + esc(s.id) + ' · ' + esc(s.role) + ' · Zone: ' + esc(s.zone || 'ALL') + '</div>'
+      + (s.email ? '<div class="meta">📧 ' + esc(s.email) + '</div>' : '<div class="meta" style="color:#c9881f;">⚠️ No email (PIN login only)</div>')
+      + '</div>'
+      + '<div><span class="pill ' + (isActive ? 'p-active' : 'p-inactive') + '">' + (isActive ? '✅ Active' : '⛔ Inactive') + '</span></div>'
+      + '</div>'
+      + '<div class="actions">'
+      + '<button class="primary" onclick="editStaff(\'' + esc(s.id) + '\')">✏️ Edit</button>'
+      + '<button class="' + (isActive ? 'danger' : '') + '" onclick="toggleStaffStatus(\'' + esc(s.id) + '\', ' + (!isActive) + ')">'
+      + (isActive ? '⏸ Deactivate' : '▶ Activate')
+      + '</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 function openAddStaffModal() {
@@ -603,7 +647,29 @@ function openAddStaffModal() {
     document.getElementById(id).value = '';
   });
   document.getElementById('s_role').value = 'housekeeping';
+  document.getElementById('s_active').value = 'true';
   document.getElementById('s_id').disabled = false;
+  document.getElementById('staffIdHelp').style.display = 'none';
+  document.getElementById('staffModal').classList.add('open');
+}
+
+function editStaff(staffId) {
+  var s = staffList.find(function(x){ return x.id === staffId; });
+  if (!s) return;
+  
+  editingStaffId = staffId;
+  document.getElementById('staffModalTitle').textContent = 'Edit ' + s.name;
+  document.getElementById('s_id').value = s.id;
+  document.getElementById('s_id').disabled = true;
+  document.getElementById('staffIdHelp').style.display = 'inline';
+  document.getElementById('s_name').value = s.name || '';
+  document.getElementById('s_pin').value = ''; // Blank = keep current PIN
+  document.getElementById('s_role').value = s.role || 'housekeeping';
+  document.getElementById('s_email').value = s.email || '';
+  document.getElementById('s_zone').value = s.zone || '';
+  document.getElementById('s_assigned').value = s.assignedWashrooms || '';
+  document.getElementById('s_active').value = s.active ? 'true' : 'false';
+  
   document.getElementById('staffModal').classList.add('open');
 }
 
@@ -612,8 +678,10 @@ function closeStaffModal() {
 }
 
 function saveStaff() {
+  var isEdit = !!editingStaffId;
+  
   var p = {
-    action: 'addStaff',
+    action: isEdit ? 'updateStaff' : 'addStaff',
     token: session.token,
     staffId: document.getElementById('s_id').value.trim(),
     name: document.getElementById('s_name').value.trim(),
@@ -621,19 +689,55 @@ function saveStaff() {
     role: document.getElementById('s_role').value,
     email: document.getElementById('s_email').value.trim(),
     zone: document.getElementById('s_zone').value.trim() || 'ALL',
-    assignedWashrooms: document.getElementById('s_assigned').value.trim() || 'ALL'
+    assignedWashrooms: document.getElementById('s_assigned').value.trim() || 'ALL',
+    active: document.getElementById('s_active').value === 'true'
   };
-  if (!p.staffId || !p.name || !p.pin) { toast('❌ All * fields required'); return; }
+  
+  if (!p.staffId || !p.name) {
+    toast('❌ Staff ID and Name required');
+    return;
+  }
+  
+  // PIN required only when adding new staff
+  if (!isEdit && !p.pin) {
+    toast('❌ PIN required for new staff');
+    return;
+  }
+  
   jsonp(p)
     .then(function(data) {
       if (!data.ok) { toast('❌ ' + data.error); return; }
-      toast('✅ Staff added');
+      toast('✅ ' + (isEdit ? 'Staff updated' : 'Staff added'));
       closeStaffModal();
       loadStaff();
     })
     .catch(function(err) { toast('❌ ' + err.message); });
 }
 
+function toggleStaffStatus(staffId, newActive) {
+  var action = newActive ? 'activate' : 'deactivate';
+  if (!confirm('Are you sure you want to ' + action + ' staff ' + staffId + '?')) return;
+  
+  jsonp({
+    action: 'updateStaff',
+    token: session.token,
+    staffId: staffId,
+    active: newActive
+  })
+  .then(function(data) {
+    if (data.ok) {
+      toast('✅ Staff ' + (newActive ? 'activated' : 'deactivated'));
+      loadStaff();
+    } else {
+      toast('❌ ' + data.error);
+    }
+  })
+  .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════ */
 function loadSettings() {
   var content = document.getElementById('settingsContent');
   content.innerHTML = '<div class="empty">Loading settings...</div>';
@@ -656,7 +760,6 @@ function loadSettings() {
 function renderSettings() {
   var workingDays = String(configData.WorkingDays || '').split(',').map(function(s){ return s.trim(); });
   var allDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var dayLabels = { Sun:'Sun', Mon:'Mon', Tue:'Tue', Wed:'Wed', Thu:'Thu', Fri:'Fri', Sat:'Sat' };
 
   var html = '';
 
@@ -690,7 +793,7 @@ function renderSettings() {
     html += '<div class="day-chk' + (isChecked ? ' checked' : '') + '" '
       + 'data-day="' + d + '" '
       + 'onclick="toggleDay(this)">'
-      + dayLabels[d]
+      + d
       + '</div>';
   });
   html += '</div></div>';
@@ -723,12 +826,6 @@ function renderSettings() {
     + '<option value="false"' + (configData.AllowOutsideShift !== 'true' ? ' selected' : '') + '>No — Enforce shift strictly</option>'
     + '<option value="true"' + (configData.AllowOutsideShift === 'true' ? ' selected' : '') + '>Yes — Allow any time</option>'
     + '</select>'
-    + '</div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>🚪 Force Logout</h3>'
-    + '<div class="help">Immediately log out ALL users. They will need to re-login.</div>'
-    + '<button class="force-logout" onclick="forceLogout()">🚪 Log Out All Users Now</button>'
     + '</div>';
 
   html += '<div class="btn-row" style="margin-top:20px;">'
@@ -807,11 +904,9 @@ function saveSettings() {
   .catch(function(err) { toast('❌ ' + err.message); });
 }
 
-function forceLogout() {
-  if (!confirm('🚪 Force logout ALL users? Everyone will need to re-login.')) return;
-  toast('⚠️ Force logout requires server-side implementation');
-}
-
+/* ═══════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════ */
 function esc(str) {
   return String(str == null ? '' : str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
