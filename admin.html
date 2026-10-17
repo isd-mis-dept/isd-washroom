@@ -17,7 +17,6 @@
     --safe-b:env(safe-area-inset-bottom,0px);
     --safe-t:env(safe-area-inset-top,0px);
   }
-    /* Universal Navigation */
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:var(--isd-light-teal); white-space:nowrap; transition:all .2s; }
   .top-nav a.active { background:var(--isd-teal); color:#fff; }
@@ -32,7 +31,7 @@
 
   header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
     padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
-    position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,76,69,.3);}
+    position:sticky;top:48px;z-index:99;box-shadow:0 2px 12px rgba(0,76,69,.3);}
   header .title{display:flex;align-items:center;gap:10px;}
   header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
     display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
@@ -46,7 +45,7 @@
     cursor:pointer;}
 
   .tabs{display:flex;background:#fff;border-bottom:1px solid #E0E8E6;
-    position:sticky;top:60px;z-index:49;overflow-x:auto;}
+    position:sticky;top:110px;z-index:49;overflow-x:auto;}
   .tabs button{flex:1;min-width:110px;padding:14px 12px;background:none;border:none;
     color:var(--muted);font-weight:800;font-size:13px;cursor:pointer;
     border-bottom:3px solid transparent;transition:all .2s;font-family:inherit;
@@ -128,19 +127,13 @@
     cursor:pointer;font-weight:700;color:var(--isd-teal);}
   .role-chk input{width:auto;margin:0;}
 
-  /* SETTINGS TAB SPECIFIC */
   .setting-group{background:#fff;border-radius:14px;padding:16px;
     margin-bottom:12px;box-shadow:0 2px 12px rgba(0,76,69,.08);}
   .setting-group h3{margin:0 0 4px;font-size:14px;color:var(--isd-teal);
     font-weight:800;display:flex;align-items:center;gap:8px;}
   .setting-group .help{font-size:12px;color:var(--muted);margin-bottom:14px;
     line-height:1.5;}
-  .setting-row{display:flex;justify-content:space-between;align-items:center;
-    padding:8px 0;border-bottom:1px solid #F0F4F3;}
-  .setting-row:last-child{border-bottom:none;}
-  .setting-row .lbl{font-size:13px;font-weight:700;color:var(--isd-teal);}
-  .setting-row .val{font-size:13px;color:var(--muted);font-weight:600;}
-
+  
   .days-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
   .day-chk{display:flex;align-items:center;justify-content:center;
     width:46px;height:46px;background:var(--isd-light-teal);border-radius:10px;
@@ -148,7 +141,6 @@
     transition:all .15s;user-select:none;border:2px solid transparent;}
   .day-chk.checked{background:var(--isd-green);color:#fff;
     border-color:#2BA824;box-shadow:0 2px 8px rgba(56,212,48,.3);}
-  .day-chk input{display:none;}
 
   .holiday-row{display:flex;justify-content:space-between;align-items:center;
     padding:8px 12px;background:var(--isd-light-teal);border-radius:8px;
@@ -157,20 +149,13 @@
     width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;
     padding:0;font-weight:800;}
 
-  .force-logout{background:linear-gradient(135deg,#FF5C35,#C93B14);color:#fff;
-    border:none;padding:14px;border-radius:10px;font-size:14px;font-weight:800;
-    cursor:pointer;width:100%;margin-top:10px;font-family:inherit;
-    box-shadow:0 4px 14px rgba(255,92,53,.35);}
-  .force-logout:active{transform:scale(.98);}
-
   .live-status{background:linear-gradient(135deg,#DFF9DD,#C9F0C5);
     border-radius:10px;padding:12px 14px;margin-bottom:14px;
     display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;
     color:#1F7A1B;}
   .live-status .dot{width:10px;height:10px;border-radius:50%;
     background:#38D430;box-shadow:0 0 8px #38D430;animation:pulse 2s infinite;}
-  .live-status.closed{background:linear-gradient(135deg,#FFF7BF,#FFE999);
-    color:#8A6400;}
+  .live-status.closed{background:linear-gradient(135deg,#FFF7BF,#FFE999);color:#8A6400;}
   .live-status.closed .dot{background:#FFDA00;box-shadow:0 0 8px #FFDA00;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
@@ -183,12 +168,10 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
   .hidden{display:none!important;}
-  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px;
-    font-weight:600;}
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px;font-weight:600;}
 
   .login-banner{background:#fff;border-radius:16px;padding:32px 24px;
-    text-align:center;margin:40px auto;max-width:400px;
-    box-shadow:0 4px 20px rgba(0,76,69,.1);}
+    text-align:center;margin:40px auto;max-width:400px;box-shadow:0 4px 20px rgba(0,76,69,.1);}
   .login-banner .icon{font-size:52px;margin-bottom:12px;}
   .login-banner h2{margin:0 0 8px;color:var(--isd-teal);font-weight:800;}
   .login-banner p{color:var(--muted);font-size:14px;margin:0 0 20px;}
@@ -196,21 +179,17 @@
     background:var(--isd-teal);color:#fff;border-radius:10px;border:none;
     font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;
     box-shadow:0 4px 12px rgba(0,76,69,.3);}
-
-  .loc-btn{margin-top:8px;background:var(--isd-light-teal);color:var(--isd-teal);
-    padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:800;
-    cursor:pointer;width:100%;font-family:inherit;transition:all .15s;}
-  .loc-btn:active{transform:scale(.98);}
 </style>
 </head>
 <body>
 
-<!-- UNIVERSAL NAVIGATION -->
 <nav class="top-nav">
   <a href="index.html">🏠 Home</a>
   <a href="app.html">📷 Scanner</a>
   <a href="dashboard.html">📊 Dashboard</a>
   <a href="admin.html" class="active">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
   <a href="qr-generator.html">🖨️ QRs</a>
 </nav>
 
@@ -218,12 +197,11 @@
   <div class="title">
     <div class="logo-sm">
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
-           alt="ISD"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
       <div class="fallback" style="display:none;">🏫</div>
     </div>
     <div>
-      <h1>Admin Panel</h1>
+      <h1 class="app-title">Admin Panel</h1>
       <div class="user" id="userName">--</div>
     </div>
   </div>
@@ -233,7 +211,7 @@
   <div class="icon">🔐</div>
   <h2>Admin Access Required</h2>
   <p>Please login as admin to manage washrooms and staff.</p>
-  <button onclick="goTo('app')">Open App →</button>
+  <button onclick="window.location.href='app.html'">Open App →</button>
 </div>
 
 <div id="adminMain" class="hidden">
@@ -276,16 +254,14 @@
 
     <label>Type *</label>
     <select id="f_type">
-      <option>Male</option><option>Female</option>
-      <option>Unisex</option><option>Staff</option><option>Disabled</option>
+      <option>Male</option><option>Female</option><option>Unisex</option><option>Staff</option><option>Disabled</option>
     </select>
 
     <label>Orientation</label>
     <select id="f_orientation">
       <option value="">—</option>
       <option>North</option><option>South</option><option>East</option><option>West</option>
-      <option>North-East</option><option>North-West</option>
-      <option>South-East</option><option>South-West</option>
+      <option>North-East</option><option>North-West</option><option>South-East</option><option>South-West</option>
     </select>
 
     <label>Latitude *</label>
@@ -294,15 +270,14 @@
     <label>Longitude *</label>
     <input id="f_lng" type="number" step="0.000001" placeholder="90.4125">
 
-    <button class="loc-btn" onclick="useMyLocation()">📍 Use my current location</button>
+    <button class="loc-btn" onclick="useMyLocation()" style="margin-top:8px;background:var(--isd-light-teal);color:var(--isd-teal);padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;width:100%;">📍 Use my current location</button>
 
     <label>Zone</label>
     <input id="f_zone" placeholder="GroundFloor">
 
     <label>Status</label>
     <select id="f_status">
-      <option>Active</option><option>Inactive</option>
-      <option>Under Repair</option><option>Under Cleaning</option>
+      <option>Active</option><option>Inactive</option><option>Under Repair</option><option>Under Cleaning</option>
     </select>
 
     <label>Scan Permission</label>
@@ -349,8 +324,7 @@
 
     <label>Role *</label>
     <select id="s_role">
-      <option>housekeeping</option><option>supervisor</option>
-      <option>admin</option><option>viewer</option>
+      <option>housekeeping</option><option>supervisor</option><option>admin</option><option>viewer</option>
     </select>
 
     <label>Email <small>(for auto-login)</small></label>
@@ -370,37 +344,21 @@
 </div>
 
 <div id="toast"></div>
-// ═══════════════════════════════════════════════
-// DYNAMIC UI CONFIG LOADER (Add to all files)
-// ═══════════════════════════════════════════════
+
+<script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
-let GLOBAL_UI = {};
 
-// Load config before showing the app
-async function loadUIBootstrapper() {
+function loadUIBootstrapper() {
   return new Promise((resolve) => {
-    // 1. Fetch public config from the known bootstrap URL
     const cb = 'bootCb_' + Date.now();
     window[cb] = function(data) {
       delete window[cb];
       if (data.ok) {
         GLOBAL_API = data.API_URL || BOOTSTRAP_API;
-        GLOBAL_UI = data;
-        
-        // Apply Branding instantly
-        if (data.BrandColor) {
-          document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
-        }
+        if (data.BrandColor) document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
         if (data.AppName) {
-          document.title = data.AppName + ' - ' + (data.SchoolName || '');
-          // Update any visible app titles on the page
-          const h1s = document.querySelectorAll('h1');
-          h1s.forEach(el => {
-            if (el.textContent.includes('ISD Washroom') || el.textContent.includes('Washroom')) {
-              el.textContent = data.AppName;
-            }
-          });
+          document.querySelector('.app-title').textContent = data.AppName + ' Admin';
         }
         if (data.LogoUrl) {
           const logos = document.querySelectorAll('img[alt="ISD"]');
@@ -409,68 +367,27 @@ async function loadUIBootstrapper() {
       }
       resolve();
     };
-    
     const s = document.createElement('script');
     s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
-    s.onerror = function() { delete window[cb]; resolve(); };
     document.head.appendChild(s);
   });
 }
-<script>
-/* ═══════════════════════════════════════════════
-   CONFIG
-   ═══════════════════════════════════════════════ */
-var API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 
-/* ═══════════════════════════════════════════════
-   JSONP HELPER
-   ═══════════════════════════════════════════════ */
 var _jsonpCounter = 0;
-
 function jsonp(params) {
   return new Promise(function(resolve, reject) {
     var callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
-    var timeoutMs = 30000;
-
-    var query = Object.keys(params)
-      .map(function(k) {
-        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
-      })
-      .join('&');
-    var url = API + '?' + query + '&callback=' + callbackName;
-
+    var query = Object.keys(params).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
+    }).join('&');
+    var url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
     var scriptEl = null;
-    var timeoutId = null;
-
-    function cleanup() {
-      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
-      if (timeoutId) clearTimeout(timeoutId);
-      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
-    }
-
-    window[callbackName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
-    timeoutId = setTimeout(function() {
-      cleanup();
-      reject(new Error('Request timeout'));
-    }, timeoutMs);
-
-    scriptEl = document.createElement('script');
-    scriptEl.src = url;
-    scriptEl.onerror = function() {
-      cleanup();
-      reject(new Error('Network error'));
-    };
-    document.head.appendChild(scriptEl);
+    function cleanup() { if (scriptEl) scriptEl.remove(); try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } }
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    scriptEl = document.createElement('script'); scriptEl.src = url; scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); }; document.head.appendChild(scriptEl);
   });
 }
 
-/* ═══════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════ */
 var session = null;
 var washrooms = [];
 var editingCode = null;
@@ -479,17 +396,8 @@ var currentTab = 'washrooms';
 var configData = {};
 var holidaysList = [];
 
-/* ═══════════════════════════════════════════════
-   NAVIGATION
-   ═══════════════════════════════════════════════ */
-function goTo(page) {
-  window.location.href = page + '.html';
-}
-
-/* ═══════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadUIBootstrapper();
   try {
     session = JSON.parse(localStorage.getItem('isd_session') || 'null');
     if (!session) {
@@ -497,17 +405,13 @@ window.addEventListener('DOMContentLoaded', function() {
       return;
     }
     document.getElementById('adminMain').classList.remove('hidden');
-    document.getElementById('userName').textContent =
-      (session.name || '--') + ' · ' + (session.role || '');
+    document.getElementById('userName').textContent = (session.name || '--') + ' · ' + (session.role || '');
     loadWashrooms();
   } catch(_) {
     document.getElementById('loginPrompt').classList.remove('hidden');
   }
 });
 
-/* ═══════════════════════════════════════════════
-   TABS
-   ═══════════════════════════════════════════════ */
 function switchTab(e, tab) {
   currentTab = tab;
   document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('active'); });
@@ -526,9 +430,6 @@ function fabClick() {
   else openAddModal();
 }
 
-/* ═══════════════════════════════════════════════
-   WASHROOMS
-   ═══════════════════════════════════════════════ */
 function loadWashrooms() {
   jsonp({ action: 'listWashrooms', token: session.token })
     .then(function(data) {
@@ -672,20 +573,15 @@ function toggleStatus(code, status) {
     .catch(function(err) { toast('❌ ' + err.message); });
 }
 
-/* ═══════════════════════════════════════════════
-   STAFF
-   ═══════════════════════════════════════════════ */
 function loadStaff() {
   jsonp({ action: 'getStaff', token: session.token })
     .then(function(data) {
       if (!data.ok) {
-        document.getElementById('staffList').innerHTML =
-          '<div class="empty">' + esc(data.error) + '</div>';
+        document.getElementById('staffList').innerHTML = '<div class="empty">' + esc(data.error) + '</div>';
         return;
       }
       if (!data.staff.length) {
-        document.getElementById('staffList').innerHTML =
-          '<div class="empty">No staff yet. Tap + to add.</div>';
+        document.getElementById('staffList').innerHTML = '<div class="empty">No staff yet. Tap + to add.</div>';
         return;
       }
       document.getElementById('staffList').innerHTML = data.staff.map(function(s) {
@@ -738,9 +634,6 @@ function saveStaff() {
     .catch(function(err) { toast('❌ ' + err.message); });
 }
 
-/* ═══════════════════════════════════════════════
-   SETTINGS
-   ═══════════════════════════════════════════════ */
 function loadSettings() {
   var content = document.getElementById('settingsContent');
   content.innerHTML = '<div class="empty">Loading settings...</div>';
@@ -767,13 +660,11 @@ function renderSettings() {
 
   var html = '';
 
-  // Live status
   html += '<div class="live-status" id="liveStatus">'
     + '<span class="dot"></span>'
     + '<span id="liveStatusText">Checking live status...</span>'
     + '</div>';
 
-  // Shift timing
   html += '<div class="setting-group">'
     + '<h3>🕐 Shift Timing</h3>'
     + '<div class="help">Staff can only login during these hours on working days.</div>'
@@ -783,7 +674,6 @@ function renderSettings() {
     + '<input type="time" id="set_shiftEnd" value="' + esc(configData.ShiftEnd || '17:30') + '">'
     + '</div>';
 
-  // Session
   html += '<div class="setting-group">'
     + '<h3>⏱ Session Duration</h3>'
     + '<div class="help">Auto-logout happens at shift end OR after this duration, whichever comes first.</div>'
@@ -791,7 +681,6 @@ function renderSettings() {
     + '<input type="number" id="set_sessionHours" min="1" max="24" step="1" value="' + esc(configData.SessionHours || '10') + '">'
     + '</div>';
 
-  // Working days
   html += '<div class="setting-group">'
     + '<h3>📅 Working Days</h3>'
     + '<div class="help">Login is blocked on non-working days.</div>'
@@ -806,7 +695,6 @@ function renderSettings() {
   });
   html += '</div></div>';
 
-  // Holidays
   html += '<div class="setting-group">'
     + '<h3>🏖 Holidays</h3>'
     + '<div class="help">Login is blocked on these specific dates.</div>'
@@ -828,7 +716,6 @@ function renderSettings() {
     + 'margin-top:8px;cursor:pointer;font-family:inherit;">+ Add Holiday</button>'
     + '</div>';
 
-  // Override
   html += '<div class="setting-group">'
     + '<h3>🔓 Emergency Override</h3>'
     + '<div class="help">Allow login outside shift hours and on holidays (emergency only).</div>'
@@ -838,21 +725,17 @@ function renderSettings() {
     + '</select>'
     + '</div>';
 
-  // Force logout
   html += '<div class="setting-group">'
     + '<h3>🚪 Force Logout</h3>'
     + '<div class="help">Immediately log out ALL users. They will need to re-login.</div>'
     + '<button class="force-logout" onclick="forceLogout()">🚪 Log Out All Users Now</button>'
     + '</div>';
 
-  // Save button
   html += '<div class="btn-row" style="margin-top:20px;">'
     + '<button class="btn-save" onclick="saveSettings()" style="padding:16px;">💾 Save All Settings</button>'
     + '</div>';
 
   document.getElementById('settingsContent').innerHTML = html;
-
-  // Load live status
   loadLiveStatus();
 }
 
@@ -926,18 +809,9 @@ function saveSettings() {
 
 function forceLogout() {
   if (!confirm('🚪 Force logout ALL users? Everyone will need to re-login.')) return;
-
-  // Set all sessions expired by writing empty token (server-side trick)
-  jsonp({ action: 'getConfig', token: session.token })
-    .then(function() {
-      toast('⚠️ Force logout requires server-side implementation');
-      alert('To force logout, set the ForceLogoutAt value in Config sheet to a future timestamp.');
-    });
+  toast('⚠️ Force logout requires server-side implementation');
 }
 
-/* ═══════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════ */
 function esc(str) {
   return String(str == null ? '' : str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
