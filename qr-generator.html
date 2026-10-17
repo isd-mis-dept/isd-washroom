@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
 <title>ISD QR Generator</title>
+<!-- SWITCHED TO A MORE RELIABLE CDN FOR BANGLADESH -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
@@ -79,10 +80,9 @@
   .qr-logo .fallback{font-size:16px;}
   .qr-school{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;}
 
-  /* Fixed size for the QR container */
   .qr-code{width:180px;height:180px;background:#fff;padding:8px;border-radius:8px;
     margin:8px 0 12px;display:flex;align-items:center;justify-content:center;}
-  .qr-code canvas{display:block;max-width:100%;max-height:100%;}
+  .qr-code canvas, .qr-code img{display:block;max-width:100%;max-height:100%;}
 
   .qr-wc-code{font-family:'SF Mono',Consolas,monospace;font-weight:900;font-size:17px;
     color:var(--isd-teal);margin-bottom:4px;letter-spacing:.5px;}
@@ -108,7 +108,6 @@
 
   .hidden{display:none!important;}
 
-  /* PRINT STYLES */
   @media print{
     @page{size:A4;margin:10mm;}
     body{background:#fff;padding:0;}
@@ -242,24 +241,16 @@ function loadWashrooms() {
 
       washrooms = [];
       
-      // We fetch hashes just in case, but we will build the URL directly 
-      // to ensure it points to the live GitHub pages app, not a broken domain.
+      // Build the direct URL based on the current browser location
+      const appBase = window.location.href.replace('qr-generator.html', 'app.html');
+      
       const promises = data.washrooms.map(w => {
         return jsonp({ action: 'generateQRHash', token: session.token, code: w.code })
-          .then(h => {
-            // Force the URL to point to the actual live GitHub Pages app URL
-            const appBase = window.location.href.replace('qr-generator.html', 'app.html');
-            washrooms.push({ 
-              ...w, 
-              qrUrl: appBase + '?c=' + encodeURIComponent(w.code) 
-            });
+          .then(() => {
+            washrooms.push({ ...w, qrUrl: appBase + '?c=' + encodeURIComponent(w.code) });
           })
-          .catch(err => {
-            const appBase = window.location.href.replace('qr-generator.html', 'app.html');
-            washrooms.push({ 
-              ...w, 
-              qrUrl: appBase + '?c=' + encodeURIComponent(w.code) 
-            });
+          .catch(() => {
+            washrooms.push({ ...w, qrUrl: appBase + '?c=' + encodeURIComponent(w.code) });
           });
       });
 
@@ -300,7 +291,7 @@ function renderQRs() {
         <div class="qr-school">International School Dhaka</div>
       </div>
 
-      <div class="qr-code"><canvas></canvas></div>
+      <div class="qr-code" id="qr-target-${w.code}"></div>
 
       <div class="qr-wc-code">${esc(w.code)}</div>
       <div class="qr-location">📍 ${esc(w.location)}</div>
@@ -310,25 +301,29 @@ function renderQRs() {
       <div class="qr-scan-text">Scan to Inspect <span>▸</span></div>
     `;
     grid.appendChild(card);
-
-    const canvas = card.querySelector('canvas');
-    
-    // Render the QR code with proper error handling
-    try {
-      QRCode.toCanvas(canvas, w.qrUrl, {
-        width: 180, margin: 1,
-        color: { dark: '#004C45', light: '#FFFFFF' },
-        errorCorrectionLevel: 'H'
-      }, function(error) {
-        if (error) {
-          console.error('QR render error:', error);
-          canvas.replaceWith(document.createTextNode('Error'));
-        }
-      });
-    } catch (err) {
-      console.error('QR exception:', err);
-    }
   });
+
+  // Generate QR codes using the qrcodejs API
+  setTimeout(() => {
+    filtered.forEach(w => {
+      const el = document.getElementById('qr-target-' + w.code);
+      if (el && typeof QRCode !== 'undefined') {
+        new QRCode(el, {
+          text: w.qrUrl,
+          width: 180,
+          height: 180,
+          colorDark : "#004C45",
+          colorLight : "#FFFFFF",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      } else if (!el) {
+        console.error("Missing container for " + w.code);
+      } else {
+        console.error("QRCode library failed to load from CDN.");
+        el.innerHTML = '<div style="color:red;font-size:10px;">Lib Error</div>';
+      }
+    });
+  }, 100); // slight delay ensures DOM is ready
 }
 
 // ═══════════════════════════════════════════════
