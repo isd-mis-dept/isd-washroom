@@ -738,11 +738,11 @@ function renderSettings() {
     + '<div class="days-grid">';
   allDays.forEach(function(d) {
     var isChecked = workingDays.indexOf(d) > -1;
-    html += '<label class="day-chk' + (isChecked ? ' checked' : '') + '" '
+    html += '<div class="day-chk' + (isChecked ? ' checked' : '') + '" '
+      + 'data-day="' + d + '" '
       + 'onclick="toggleDay(this)">'
-      + '<input type="checkbox" data-day="' + d + '" ' + (isChecked ? 'checked' : '') + '>'
       + dayLabels[d]
-      + '</label>';
+      + '</div>';
   });
   html += '</div></div>';
 
@@ -816,8 +816,6 @@ function loadLiveStatus() {
 
 function toggleDay(el) {
   el.classList.toggle('checked');
-  var chk = el.querySelector('input');
-  chk.checked = el.classList.contains('checked');
 }
 
 function addHoliday() {
@@ -840,7 +838,7 @@ function saveSettings() {
   var sessionHours = document.getElementById('set_sessionHours').value;
   var allowOutside = document.getElementById('set_allowOutside').value;
 
-  var selectedDays = Array.from(document.querySelectorAll('.day-chk.checked input'))
+  var selectedDays = Array.from(document.querySelectorAll('.day-chk.checked'))
     .map(function(c){ return c.getAttribute('data-day'); });
 
   var updates = {
