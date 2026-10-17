@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<title>ISD Control Panel</title>
+<style>
+  :root{--isd-teal:#004C45;--isd-green:#38D430;--isd-orange:#FF5C35;--bg:#F5F7F6;--muted:#5C7B77;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
+  .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
+  .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:#E6F2F0; white-space:nowrap; }
+  .top-nav a.active { background:var(--isd-teal); color:#fff; }
+  .container{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+  h1{font-size:20px;font-weight:800;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,76,69,.06);}
+  .card h3{margin:0 0 12px;font-size:15px;text-transform:uppercase;letter-spacing:.5px;}
+  label{display:block;font-size:12px;font-weight:800;margin-top:12px;margin-bottom:4px;}
+  input,textarea,select{width:100%;padding:10px;border:2px solid #D5DFDD;border-radius:8px;font-family:inherit;font-size:14px;}
+  input:focus,textarea:focus{outline:none;border-color:var(--isd-teal);}
+  .btn-save{background:var(--isd-teal);color:#fff;border:none;padding:16px;width:100%;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;margin-top:20px;box-shadow:0 4px 14px rgba(0,76,69,.3);}
+  .tag-box { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .tag { background:#E6F2F0; color:var(--isd-teal); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer; border:1px solid #B2DFDB;}
+  .tag:hover { background:var(--isd-teal); color:#fff; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="index.html">🏠 Home</a>
+  <a href="app.html">📷 Scanner</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html" class="active">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
+  <a href="qr-generator.html">🖨️ QRs</a>
+</nav>
+<div class="container">
+  <h1>System Control</h1>
+  <div class="sub">Manage URLs, Email Templates, and Shift Settings.</div>
+  <div id="content">Loading...</div>
+</div>
+<script>
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let session = null;
+
+let _jsonpCounter = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
+    const url = API + '?' + query + '&callback=' + callbackName;
+    let scriptEl = null;
+    function cleanup() { if (scriptEl) scriptEl.remove(); try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } }
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    scriptEl = document.createElement('script'); scriptEl.src = url; scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); }; document.head.appendChild(scriptEl);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  session = JSON.parse(localStorage.getItem('isd_session')||'null');
+  if (!session || session.role !== 'admin') {
+    document.getElementById('content').innerHTML = '<div style="color:red;font-weight:bold;">❌ Admin Access Required</div>';
+    return;
+  }
+  loadConfig();
+});
+
+function loadConfig() {
+  jsonp({ action: 'getConfig', token: session.token })
+    .then(res => {
+      if (!res.ok) throw new Error(res.error);
+      renderUI(res.config);
+    })
+    .catch(err => {
+      document.getElementById('content').innerHTML = '<div style="color:red;">Error: ' + err.message + '</div>';
+    });
+}
+
+function renderUI(cfg) {
+  let html = `
+    <div class="card">
+      <h3>🌐 Public Base URL</h3>
+      <label>The live URL of the scanner app</label>
+      <input type="text" id="cfg_PublicBase" value="${cfg.PublicBase || ''}">
+    </div>
+    
+    <div class="card">
+      <h3>📧 Dynamic Email Report</h3>
+      <label>Recipients (comma separated)</label>
+      <input type="text" id="cfg_EmailRecipients" value="${cfg.EmailRecipients || 'mis@isdbd.org'}">
+      
+      <label>Subject Line</label>
+      <input type="text" id="cfg_EmailSubject" value="${cfg.EmailSubject || ''}">
+      
+      <label>Insert Dynamic Tags (Click to Append)</label>
+      <div class="tag-box">
+        <span class="tag" onclick="appendTag('cfg_EmailSubject', '[date]')">[date]</span>
+        <span class="tag" onclick="appendTag('cfg_EmailSubject', '[compliance]')">[compliance]</span>
+      </div>
+      
+      <label>Email Body</label>
+      <textarea id="cfg_EmailBody" rows="6">${cfg.EmailBody || ''}</textarea>
+      <label>Insert Dynamic Tags (Click to Append)</label>
+      <div class="tag-box">
+        <span class="tag" onclick="appendTag('cfg_EmailBody', '[date]')">[date]</span>
+        <span class="tag" onclick="appendTag('cfg_EmailBody', '[compliance]')">[compliance]</span>
+        <span class="tag" onclick="appendTag('cfg_EmailBody', '[checked_count]')">[checked_count]</span>
+        <span class="tag" onclick="appendTag('cfg_EmailBody', '[missed_count]')">[missed_count]</span>
+        <span class="tag" onclick="appendTag('cfg_EmailBody', '[gps_issues]')">[gps_issues]</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🕐 Shift Settings</h3>
+      <label>Shift Start (HH:MM)</label>
+      <input type="time" id="cfg_ShiftStart" value="${cfg.ShiftStart || '07:30'}">
+      <label>Shift End (HH:MM)</label>
+      <input type="time" id="cfg_ShiftEnd" value="${cfg.ShiftEnd || '17:30'}">
+      <label>Session Hours</label>
+      <input type="number" id="cfg_SessionHours" value="${cfg.SessionHours || '10'}">
+    </div>
+
+    <button class="btn-save" onclick="saveAll()">💾 Save Control Settings</button>
+  `;
+  document.getElementById('content').innerHTML = html;
+}
+
+function appendTag(id, tag) {
+  const el = document.getElementById(id);
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
+  el.value = el.value.substring(0, start) + tag + el.value.substring(end);
+  el.focus();
+  el.selectionStart = el.selectionEnd = start + tag.length;
+}
+
+function saveAll() {
+  const updates = {
+    PublicBase: document.getElementById('cfg_PublicBase').value,
+    EmailRecipients: document.getElementById('cfg_EmailRecipients').value,
+    EmailSubject: document.getElementById('cfg_EmailSubject').value,
+    EmailBody: document.getElementById('cfg_EmailBody').value,
+    ShiftStart: document.getElementById('cfg_ShiftStart').value,
+    ShiftEnd: document.getElementById('cfg_ShiftEnd').value,
+    SessionHours: document.getElementById('cfg_SessionHours').value
+  };
+
+  const btn = document.querySelector('.btn-save');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+
+  jsonp({ action: 'saveConfig', token: session.token, config: JSON.stringify(updates) })
+    .then(res => {
+      btn.textContent = '💾 Save Control Settings';
+      btn.disabled = false;
+      if (res.ok) alert('✅ Settings saved!');
+      else alert('❌ Error: ' + res.error);
+    })
+    .catch(err => {
+      btn.textContent = '💾 Save Control Settings';
+      btn.disabled = false;
+      alert('❌ ' + err.message);
+    });
+}
+</script>
+</body>
+</html>
