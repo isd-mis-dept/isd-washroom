@@ -1,0 +1,19 @@
+{
+  "name": "ISD Washroom Inspection",
+  "short_name": "ISD WC",
+  "description": "Washroom inspection system for International School Dhaka",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#004C45",
+  "theme_color": "#004C45",
+  "icons": [
+    {
+      "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
