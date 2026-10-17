@@ -121,7 +121,52 @@
 </div>
 
 <div id="toast"></div>
+// ═══════════════════════════════════════════════
+// DYNAMIC UI CONFIG LOADER (Add to all files)
+// ═══════════════════════════════════════════════
+const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let GLOBAL_API = BOOTSTRAP_API;
+let GLOBAL_UI = {};
 
+// Load config before showing the app
+async function loadUIBootstrapper() {
+  return new Promise((resolve) => {
+    // 1. Fetch public config from the known bootstrap URL
+    const cb = 'bootCb_' + Date.now();
+    window[cb] = function(data) {
+      delete window[cb];
+      if (data.ok) {
+        GLOBAL_API = data.API_URL || BOOTSTRAP_API;
+        GLOBAL_UI = data;
+        
+        // Apply Branding instantly
+        if (data.BrandColor) {
+          document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
+        }
+        if (data.AppName) {
+          document.title = data.AppName + ' - ' + (data.SchoolName || '');
+          // Update any visible app titles on the page
+          const h1s = document.querySelectorAll('h1');
+          h1s.forEach(el => {
+            if (el.textContent.includes('ISD Washroom') || el.textContent.includes('Washroom')) {
+              el.textContent = data.AppName;
+            }
+          });
+        }
+        if (data.LogoUrl) {
+          const logos = document.querySelectorAll('img[alt="ISD"]');
+          logos.forEach(img => img.src = data.LogoUrl);
+        }
+      }
+      resolve();
+    };
+    
+    const s = document.createElement('script');
+    s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
+    s.onerror = function() { delete window[cb]; resolve(); };
+    document.head.appendChild(s);
+  });
+}
 <script>
 const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let session = null;
