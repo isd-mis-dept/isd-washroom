@@ -382,7 +382,10 @@ var scanner = null;
 /* ═══════════════════════════════════════════════
    BOOT
    ═══════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadUIBootstrapper();
+  init();
+});
 
 function init() {
   loadShiftInfo();
