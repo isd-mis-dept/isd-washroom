@@ -79,6 +79,7 @@
   .qr-logo .fallback{font-size:16px;}
   .qr-school{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;}
 
+  /* Fixed size for the QR container */
   .qr-code{width:180px;height:180px;background:#fff;padding:8px;border-radius:8px;
     margin:8px 0 12px;display:flex;align-items:center;justify-content:center;}
   .qr-code canvas{display:block;max-width:100%;max-height:100%;}
@@ -105,20 +106,13 @@
     color:#fff;border-radius:10px;border:none;font-weight:800;font-size:15px;
     cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,76,69,.3);}
 
-  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);
-    background:var(--isd-teal);color:#fff;padding:12px 22px;border-radius:10px;
-    font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:999;
-    pointer-events:none;max-width:calc(100% - 40px);box-shadow:0 8px 24px rgba(0,76,69,.35);
-    text-align:center;}
-  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
   .hidden{display:none!important;}
 
   /* PRINT STYLES */
   @media print{
     @page{size:A4;margin:10mm;}
     body{background:#fff;padding:0;}
-    header,.toolbar,.info-banner,#toast{display:none!important;}
+    header,.toolbar,.info-banner{display:none!important;}
     .container{padding:0;max-width:100%;}
     .grid{grid-template-columns:1fr 1fr;gap:10mm;}
     .qr-card{border:2px dashed var(--isd-teal);box-shadow:none;
@@ -172,8 +166,6 @@
     </div>
   </div>
 </div>
-
-<div id="toast"></div>
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
@@ -249,13 +241,25 @@ function loadWashrooms() {
       }
 
       washrooms = [];
+      
+      // We fetch hashes just in case, but we will build the URL directly 
+      // to ensure it points to the live GitHub pages app, not a broken domain.
       const promises = data.washrooms.map(w => {
         return jsonp({ action: 'generateQRHash', token: session.token, code: w.code })
           .then(h => {
-            washrooms.push({ ...w, qrUrl: h.ok ? h.url : `?c=${w.code}` });
+            // Force the URL to point to the actual live GitHub Pages app URL
+            const appBase = window.location.href.replace('qr-generator.html', 'app.html');
+            washrooms.push({ 
+              ...w, 
+              qrUrl: appBase + '?c=' + encodeURIComponent(w.code) 
+            });
           })
-          .catch(() => {
-            washrooms.push({ ...w, qrUrl: `?c=${w.code}` });
+          .catch(err => {
+            const appBase = window.location.href.replace('qr-generator.html', 'app.html');
+            washrooms.push({ 
+              ...w, 
+              qrUrl: appBase + '?c=' + encodeURIComponent(w.code) 
+            });
           });
       });
 
@@ -308,14 +312,22 @@ function renderQRs() {
     grid.appendChild(card);
 
     const canvas = card.querySelector('canvas');
-    QRCode.toCanvas(canvas, w.qrUrl, {
-      width: 180, margin: 1,
-      color: { dark: '#004C45', light: '#FFFFFF' },
-      errorCorrectionLevel: 'H'
-    }).catch(err => {
-      console.error('QR error for ' + w.code, err);
-      canvas.replaceWith(document.createTextNode('QR error'));
-    });
+    
+    // Render the QR code with proper error handling
+    try {
+      QRCode.toCanvas(canvas, w.qrUrl, {
+        width: 180, margin: 1,
+        color: { dark: '#004C45', light: '#FFFFFF' },
+        errorCorrectionLevel: 'H'
+      }, function(error) {
+        if (error) {
+          console.error('QR render error:', error);
+          canvas.replaceWith(document.createTextNode('Error'));
+        }
+      });
+    } catch (err) {
+      console.error('QR exception:', err);
+    }
   });
 }
 
