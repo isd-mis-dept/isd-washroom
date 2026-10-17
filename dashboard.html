@@ -4,20 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
-<title>ISD Dashboard</title>
+<title>Analytics Dashboard</title>
 <link rel="manifest" href="manifest.json">
 <style>
   :root{--isd-teal:#004C45;--isd-green:#38D430;--bg:#F5F7F6;--card:#fff;--muted:#5C7B77;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
+  
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:#E6F2F0; white-space:nowrap; }
   .top-nav a.active { background:var(--isd-teal); color:#fff; }
 
   header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px rgba(0,76,69,.3);}
   header h1{margin:0;font-size:15px;font-weight:800;}
-  .header-actions { display: flex; gap: 8px; }
-  .btn-export { background: linear-gradient(135deg, #38D430, #2BA824); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(56,212,48,.3); }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  
+  .btn-export { background: linear-gradient(135deg, #38D430, #2BA824); color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .btn-pdf { background: #FF5C35; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
   .btn-refresh { background: rgba(255,255,255,.15); color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
 
   .container{max-width:640px;margin:0 auto;padding:14px;padding-bottom:40px;}
@@ -37,6 +40,18 @@
   .activity-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0F4F3;font-size:13px;}
   .badge-ok{background:#DFF9DD;color:#1F7A1B;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:800;}
   .badge-bad{background:#FFE0D6;color:#C93B14;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:800;}
+
+  /* PDF Print Layout */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .top-nav, header, .filters, .btn-export, .btn-pdf, .btn-refresh { display: none !important; }
+    .container { max-width: 100%; padding: 0; }
+    .kpi { border: 1px solid #ccc; box-shadow: none; }
+    .section { border: 1px solid #ccc; box-shadow: none; page-break-inside: avoid; }
+    .activity-row { page-break-inside: avoid; }
+    .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+  }
+  .print-header { display: none; }
 </style>
 </head>
 <body>
@@ -53,17 +68,24 @@
 
 <header>
   <div>
-    <h1>Washroom Analytics</h1>
+    <h1 class="app-title">Washroom Analytics</h1>
     <div style="font-size:10px;color:#FFDA00;text-transform:uppercase;font-weight:700;" id="userRole">--</div>
   </div>
   <div class="header-actions">
-    <button class="btn-export" onclick="exportExcel()">📥 Export</button>
+    <button class="btn-export" onclick="exportExcel()">📥 Excel</button>
+    <button class="btn-pdf" onclick="window.print()">🖨️ PDF</button>
     <button class="btn-refresh" onclick="loadDashboard()">🔄</button>
   </div>
 </header>
 
-<div class="container" id="mainContent">
-  <div class="section">
+<div class="container">
+  <div class="print-header">
+    <h2 id="printSchool" style="margin:0 0 4px;">International School Dhaka</h2>
+    <div style="font-size:12px;color:#666;">Washroom Inspection Report — <span id="printDate"></span></div>
+    <hr style="margin:16px 0;border:none;border-top:2px solid #004C45;">
+  </div>
+
+  <div class="section" id="filterSection">
     <h3>📅 Date Filter</h3>
     <div class="filters">
       <input type="date" id="filterFrom">
@@ -81,7 +103,7 @@
 
   <div class="section">
     <h3>🛰️ GPS Transparency</h3>
-    <div class="analytics-row"><span>Average Distance:</span> <b id="k_avgDist">-- m</b></div>
+    <div class="analytics-row"><span>Average Distance from Target:</span> <b id="k_avgDist">-- m</b></div>
     <div class="analytics-row"><span>GPS Mismatches (>50m):</span> <b id="k_gpsIssues" style="color:#C93B14;">--</b></div>
   </div>
 
@@ -90,17 +112,16 @@
     <div id="activityWrap">Loading...</div>
   </div>
 </div>
-// ═══════════════════════════════════════════════
-// DYNAMIC UI CONFIG LOADER (Add to all files)
-// ═══════════════════════════════════════════════
+
+<script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
 let GLOBAL_UI = {};
+let session = null;
 
-// Load config before showing the app
+// DYNAMIC LOADER
 async function loadUIBootstrapper() {
   return new Promise((resolve) => {
-    // 1. Fetch public config from the known bootstrap URL
     const cb = 'bootCb_' + Date.now();
     window[cb] = function(data) {
       delete window[cb];
@@ -108,44 +129,27 @@ async function loadUIBootstrapper() {
         GLOBAL_API = data.API_URL || BOOTSTRAP_API;
         GLOBAL_UI = data;
         
-        // Apply Branding instantly
-        if (data.BrandColor) {
-          document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
-        }
+        if (data.BrandColor) document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
         if (data.AppName) {
-          document.title = data.AppName + ' - ' + (data.SchoolName || '');
-          // Update any visible app titles on the page
-          const h1s = document.querySelectorAll('h1');
-          h1s.forEach(el => {
-            if (el.textContent.includes('ISD Washroom') || el.textContent.includes('Washroom')) {
-              el.textContent = data.AppName;
-            }
-          });
-        }
-        if (data.LogoUrl) {
-          const logos = document.querySelectorAll('img[alt="ISD"]');
-          logos.forEach(img => img.src = data.LogoUrl);
+          document.querySelector('.app-title').textContent = data.AppName + ' Analytics';
+          document.getElementById('printSchool').textContent = data.SchoolName;
         }
       }
       resolve();
     };
-    
     const s = document.createElement('script');
     s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
-    s.onerror = function() { delete window[cb]; resolve(); };
     document.head.appendChild(s);
   });
 }
-<script>
-const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
-let session = null;
 
+// JSONP HELPER (Uses GLOBAL_API)
 let _jsonpCounter = 0;
 function jsonp(params) {
   return new Promise((resolve, reject) => {
     const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
     const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
-    const url = API + '?' + query + '&callback=' + callbackName;
+    const url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
     let scriptEl = null;
     function cleanup() { if (scriptEl) scriptEl.remove(); try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } }
     window[callbackName] = function(data) { cleanup(); resolve(data); };
@@ -153,15 +157,17 @@ function jsonp(params) {
   });
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadUIBootstrapper();
   session = JSON.parse(localStorage.getItem('isd_session')||'null');
   if (!session) { window.location.href = 'app.html'; return; }
+  
   document.getElementById('userRole').textContent = session.role.toUpperCase() + ' · ' + session.name;
   
-  // Default date to today
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('filterFrom').value = today;
   document.getElementById('filterTo').value = today;
+  document.getElementById('printDate').textContent = today;
   
   loadDashboard();
 });
@@ -169,6 +175,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function loadDashboard() {
   const from = document.getElementById('filterFrom').value;
   const to = document.getElementById('filterTo').value;
+  document.getElementById('printDate').textContent = from + ' to ' + to;
   
   jsonp({ action: 'getDashboard', token: session.token, from: from, to: to })
     .then(data => {
