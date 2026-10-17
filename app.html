@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#004C45">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ISD WC">
 <link rel="manifest" href="manifest.json">
 <title>ISD Washroom Scanner</title>
@@ -20,7 +19,6 @@
     --safe-b:env(safe-area-inset-bottom,0px);
     --safe-t:env(safe-area-inset-top,0px);
   }
-  
   /* Universal Navigation */
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:var(--isd-light-teal); white-space:nowrap; transition:all .2s; }
@@ -28,15 +26,14 @@
   .top-nav a:hover { opacity:0.8; }
   
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background:var(--bg);color:var(--text);overscroll-behavior-y:contain;}
   body{min-height:100vh;padding-top:var(--safe-t);}
   input,textarea,select,button{font-family:inherit;font-size:16px;}
 
   header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
     padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
-    position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,76,69,.3);}
+    position:sticky;top:48px;z-index:99;box-shadow:0 2px 12px rgba(0,76,69,.3);}
   header .left{display:flex;align-items:center;gap:10px;}
   header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
     display:flex;align-items:center;justify-content:center;overflow:hidden;
@@ -76,11 +73,9 @@
     cursor:pointer;transition:transform .1s,opacity .2s;touch-action:manipulation;}
   button:active{transform:scale(.98);opacity:.9;}
   button:disabled{opacity:.5;cursor:not-allowed;}
-  button.ok{background:linear-gradient(135deg,#38D430,#2BA824);
-    box-shadow:0 4px 14px rgba(56,212,48,.35);}
+  button.ok{background:linear-gradient(135deg,#38D430,#2BA824);box-shadow:0 4px 14px rgba(56,212,48,.35);}
   button.warn{background:var(--isd-orange);}
-  button.ghost{background:var(--isd-light-teal);color:var(--isd-teal);
-    border:1.5px solid rgba(0,76,69,.15);}
+  button.ghost{background:var(--isd-light-teal);color:var(--isd-teal);border:1.5px solid rgba(0,76,69,.15);}
   button.big{padding:20px;font-size:17px;}
 
   .badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;
@@ -88,12 +83,9 @@
   .b-ok{background:#DFF9DD;color:#1F7A1B;}
   .b-bad{background:#FFE0D6;color:#C93B14;}
   .b-warn{background:#FFF7BF;color:#8A6400;}
-  .b-info{background:#DCEEEC;color:var(--isd-teal);}
 
-  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
-    gap:8px;margin-top:10px;}
-  .thumbs .thumb{position:relative;aspect-ratio:1;border-radius:10px;
-    overflow:hidden;border:2px solid var(--isd-teal);}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px;}
+  .thumbs .thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--isd-teal);}
   .thumbs .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
   .thumbs .thumb .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);
     color:#fff;border:none;width:24px;height:24px;border-radius:50%;font-size:14px;
@@ -101,8 +93,7 @@
   .photo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
   .photo-row button{margin-top:0;padding:12px;font-size:13px;}
 
-  #reader{border-radius:12px;overflow:hidden;background:#000;min-height:280px;
-    position:relative;}
+  #reader{border-radius:12px;overflow:hidden;background:#000;min-height:280px;position:relative;}
   #reader video{border-radius:12px;display:block;}
 
   .list-row{display:flex;justify-content:space-between;align-items:center;
@@ -110,13 +101,11 @@
   .list-row:last-child{border-bottom:none;}
   .list-row .meta{font-size:12px;color:var(--muted);}
 
-  #loginScreen{position:fixed;inset:0;
-    background:linear-gradient(160deg,#004C45,#00332E);
+  #loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,#004C45,#00332E);
     display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;
     padding-top:calc(20px + var(--safe-t));overflow-y:auto;}
   #loginScreen .box{background:#fff;border-radius:20px;padding:28px 24px;
-    width:100%;max-width:400px;text-align:center;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);margin:auto;}
+    width:100%;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);margin:auto;}
   #loginScreen .logo-wrap{width:84px;height:84px;margin:0 auto 14px;
     background:#F5F7F6;border-radius:20px;display:flex;align-items:center;
     justify-content:center;padding:10px;overflow:hidden;}
@@ -126,15 +115,12 @@
   #loginScreen p{color:var(--muted);font-size:13px;margin:0 0 20px;font-weight:500;}
   #loginScreen .school-tag{font-size:10px;color:var(--muted);letter-spacing:1.5px;
     text-transform:uppercase;font-weight:700;margin-bottom:18px;}
-  #loginMsg{color:var(--isd-orange);min-height:18px;font-size:13px;
-    margin-top:12px;font-weight:600;}
+  #loginMsg{color:var(--isd-orange);min-height:18px;font-size:13px;margin-top:12px;font-weight:600;}
 
   .shift-info{background:var(--isd-light-teal);border-radius:10px;
-    padding:10px 12px;margin-bottom:18px;font-size:12px;
-    color:var(--isd-teal);font-weight:600;display:flex;
-    align-items:center;gap:8px;justify-content:center;}
-  .shift-info .dot{width:8px;height:8px;border-radius:50%;
-    background:#FFDA00;box-shadow:0 0 6px #FFDA00;animation:pulse 2s infinite;}
+    padding:10px 12px;margin-bottom:18px;font-size:12px;color:var(--isd-teal);
+    font-weight:600;display:flex;align-items:center;gap:8px;justify-content:center;}
+  .shift-info .dot{width:8px;height:8px;border-radius:50%;background:#FFDA00;box-shadow:0 0 6px #FFDA00;animation:pulse 2s infinite;}
   .shift-info.open .dot{background:#38D430;box-shadow:0 0 6px #38D430;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
@@ -150,8 +136,7 @@
     gap:14px;z-index:9998;font-size:14px;font-weight:700;}
   #loading.show{display:flex;}
   .spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.25);
-    border-top-color:var(--isd-green);border-radius:50%;
-    animation:spin 1s linear infinite;}
+    border-top-color:var(--isd-green);border-radius:50%;animation:spin 1s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
   .info-row{display:flex;justify-content:space-between;padding:8px 0;
@@ -169,6 +154,8 @@
   <a href="app.html" class="active">📷 Scanner</a>
   <a href="dashboard.html">📊 Dashboard</a>
   <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
   <a href="qr-generator.html">🖨️ QRs</a>
 </nav>
 
@@ -177,13 +164,12 @@
   <div class="box">
     <div class="logo-wrap">
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
-           alt="ISD"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
       <div class="fallback" style="display:none;">🏫</div>
     </div>
-    <h1>ISD Washroom</h1>
+    <h1 class="app-title">ISD Washroom</h1>
     <p>Inspection Scanner — Staff Login</p>
-    <div class="school-tag">International School Dhaka</div>
+    <div class="school-tag" id="schoolTag">International School Dhaka</div>
 
     <div class="shift-info" id="shiftInfo">
       <span class="dot"></span>
@@ -203,8 +189,7 @@
     <div class="left">
       <div class="logo-sm">
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
-             alt="ISD"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+             alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
         <div class="fallback" style="display:none;">🏫</div>
       </div>
       <div class="user-info">
@@ -258,9 +243,7 @@
       <input id="fileIn" type="file" accept="image/*" multiple capture="environment" class="hidden">
       <input id="camIn" type="file" accept="image/*" capture="environment" class="hidden">
       <div class="thumbs" id="thumbs"></div>
-      <button class="ok big" onclick="submitInspection()" id="submitBtn">
-        ✅ CHECKED &amp; SUBMIT
-      </button>
+      <button class="ok big" onclick="submitInspection()" id="submitBtn">✅ CHECKED &amp; SUBMIT</button>
       <button class="ghost" onclick="resetForm()">↻ Reset</button>
     </div>
 
@@ -276,11 +259,10 @@
 
 <script>
 /* ═══════════════════════════════════════════════
-   DYNAMIC UI CONFIG LOADER
+   DYNAMIC UI BOOTSTRAPPER
    ═══════════════════════════════════════════════ */
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
-let GLOBAL_UI = {};
 
 function loadUIBootstrapper() {
   return new Promise((resolve) => {
@@ -289,21 +271,12 @@ function loadUIBootstrapper() {
       delete window[cb];
       if (data.ok) {
         GLOBAL_API = data.API_URL || BOOTSTRAP_API;
-        GLOBAL_UI = data;
-        
-        // Apply Branding instantly
-        if (data.BrandColor) {
-          document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
-        }
+        if (data.BrandColor) document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
         if (data.AppName) {
-          document.title = data.AppName + ' - ' + (data.SchoolName || '');
-          const h1s = document.querySelectorAll('h1');
-          h1s.forEach(el => {
-            if (el.textContent.includes('ISD Washroom') || el.textContent.includes('Washroom')) {
-              el.textContent = data.AppName;
-            }
-          });
+          document.title = data.AppName + ' Scanner';
+          document.querySelector('.app-title').textContent = data.AppName;
         }
+        if (data.SchoolName) document.getElementById('schoolTag').textContent = data.SchoolName;
         if (data.LogoUrl) {
           const logos = document.querySelectorAll('img[alt="ISD"]');
           logos.forEach(img => img.src = data.LogoUrl);
@@ -311,7 +284,6 @@ function loadUIBootstrapper() {
       }
       resolve();
     };
-    
     const s = document.createElement('script');
     s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
     s.onerror = function() { delete window[cb]; resolve(); };
@@ -323,45 +295,24 @@ function loadUIBootstrapper() {
    JSONP HELPER (Uses GLOBAL_API)
    ═══════════════════════════════════════════════ */
 var _jsonpCounter = 0;
-
 function jsonp(params) {
   return new Promise(function(resolve, reject) {
     var callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
-    var timeoutMs = 30000;
-
-    var query = Object.keys(params)
-      .map(function(k) {
+    var query = Object.keys(params).map(function(k) {
         return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
-      })
-      .join('&');
-    // ⭐ Use GLOBAL_API here
+      }).join('&');
     var url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
-
-    var scriptEl = null;
-    var timeoutId = null;
-
+    var scriptEl = null, timeoutId = null;
     function cleanup() {
       if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
       if (timeoutId) clearTimeout(timeoutId);
       try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
     }
-
-    window[callbackName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
-    timeoutId = setTimeout(function() {
-      cleanup();
-      reject(new Error('Request timeout'));
-    }, timeoutMs);
-
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    timeoutId = setTimeout(function() { cleanup(); reject(new Error('Request timeout')); }, 30000);
     scriptEl = document.createElement('script');
     scriptEl.src = url;
-    scriptEl.onerror = function() {
-      cleanup();
-      reject(new Error('Network error'));
-    };
+    scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); };
     document.head.appendChild(scriptEl);
   });
 }
@@ -426,10 +377,7 @@ function loadShiftInfo() {
   jsonp({ action: 'shiftInfo' })
     .then(function(data) {
       if (!data.ok) return;
-      sessionStorage.setItem('shiftInfoCache', JSON.stringify({
-        ts: Date.now(),
-        info: data
-      }));
+      sessionStorage.setItem('shiftInfoCache', JSON.stringify({ ts: Date.now(), info: data }));
       applyShiftInfo(data);
     })
     .catch(function() {
@@ -463,12 +411,7 @@ function doLogin() {
   btn.textContent = '⏳ Signing in...';
   msg.textContent = '';
 
-  jsonp({
-    action: 'login',
-    staffId: staffId,
-    pin: pin,
-    deviceInfo: navigator.userAgent.substring(0, 120)
-  })
+  jsonp({ action: 'login', staffId: staffId, pin: pin, deviceInfo: navigator.userAgent.substring(0, 120) })
   .then(function(data) {
     if (!data.ok) {
       msg.textContent = '❌ ' + (data.error || 'Login failed');
@@ -476,7 +419,6 @@ function doLogin() {
       btn.textContent = '🔐 Login';
       return;
     }
-
     data.loginTime = Date.now();
     session = data;
     localStorage.setItem('isd_session', JSON.stringify(data));
@@ -529,11 +471,7 @@ function startGPS() {
   if (!navigator.geolocation) { setGpsBadge('Not supported', 'b-bad'); return; }
   navigator.geolocation.watchPosition(
     function(pos) {
-      coords = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        acc: Math.round(pos.coords.accuracy)
-      };
+      coords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
       setGpsBadge('±' + coords.acc + 'm', coords.acc <= 30 ? 'b-ok' : 'b-warn');
       if (currentWc) checkGeofence();
     },
@@ -551,8 +489,7 @@ function setGpsBadge(text, cls) {
 function haversine(lat1, lon1, lat2, lon2) {
   var R=6371000, r=function(x){return x*Math.PI/180;};
   var dLat=r(lat2-lat1), dLon=r(lon2-lon1);
-  var a=Math.sin(dLat/2)*Math.sin(dLat/2)
-    + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
   return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
@@ -588,10 +525,8 @@ function startScan() {
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(function(stream) {
       stream.getTracks().forEach(function(t) { t.stop(); });
-
       reader.innerHTML = '';
       scanner = new Html5Qrcode('reader');
-
       return scanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -658,23 +593,12 @@ function onScanSuccess(text) {
   jsonp({ action: 'getWashroom', code: code })
     .then(function(data) {
       hideLoading();
-
       if (!data.ok) { toast('❌ ' + data.error); return; }
       var w = data.washroom;
 
-      if (String(w.status).toLowerCase() !== 'active') {
-        alert('⛔ This washroom is currently: ' + w.status);
-        return;
-      }
-      if (w.scanPermission === 'disabled') {
-        alert('⛔ Scanning disabled by admin.');
-        return;
-      }
-      if (w.scanPermission === 'restricted' && w.allowedRoles.length
-          && w.allowedRoles.indexOf(session.role) === -1) {
-        alert('🔒 Restricted washroom.');
-        return;
-      }
+      if (String(w.status).toLowerCase() !== 'active') { alert('⛔ This washroom is currently: ' + w.status); return; }
+      if (w.scanPermission === 'disabled') { alert('⛔ Scanning disabled by admin.'); return; }
+      if (w.scanPermission === 'restricted' && w.allowedRoles.length && w.allowedRoles.indexOf(session.role) === -1) { alert('🔒 Restricted washroom.'); return; }
 
       currentWc = w;
       renderWashroom(w);
@@ -754,14 +678,12 @@ function submitInspection() {
   })
   .then(function(data) {
     hideLoading();
-
     if (!data.ok) {
       toast('❌ ' + data.error);
       btn.disabled = false;
       btn.textContent = '✅ CHECKED & SUBMIT';
       return;
     }
-
     var statusText = data.status === 'OK' ? '✅ Verified' : '⚠️ GPS Mismatch';
     toast('✅ Submitted — ' + statusText);
     alert('✅ Inspection recorded!\n\nWashroom: ' + currentWc.code + '\nStatus: ' + statusText);
@@ -797,8 +719,7 @@ function loadProgress() {
       if (!data.ok) return;
       var pct = data.total ? (data.checked / data.total * 100) : 0;
       document.getElementById('progBar').style.width = pct + '%';
-      document.getElementById('progPct').textContent =
-        data.checked + ' / ' + data.total + ' (' + data.compliance + '%)';
+      document.getElementById('progPct').textContent = data.checked + ' / ' + data.total + ' (' + data.compliance + '%)';
     })
     .catch(function(){});
 }
@@ -814,9 +735,7 @@ function loadRecent() {
       }
       list.innerHTML = data.recent.slice(0, 8).map(function(r) {
         var ok = r.status === 'OK';
-        var badge = ok
-          ? '<span class="badge b-ok" style="font-size:9px;padding:3px 8px;">OK</span>'
-          : '<span class="badge b-bad" style="font-size:9px;padding:3px 8px;">GPS</span>';
+        var badge = ok ? '<span class="badge b-ok" style="font-size:9px;padding:3px 8px;">OK</span>' : '<span class="badge b-bad" style="font-size:9px;padding:3px 8px;">GPS</span>';
         var t = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         return '<div class="list-row">'
           + '<div>' + badge + ' <b>' + r.code + '</b></div>'
