@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<title>ISD QR Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;--isd-teal-light:#0A6B62;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;--isd-orange:#FF5C35;
+    --isd-white:#FFFFFF;--isd-gray:#F5F7F6;--isd-light-teal:#E6F2F0;
+    --bg:#F5F7F6;--card:#FFFFFF;--text:#004C45;--muted:#5C7B77;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);}
+  body{min-height:100vh;}
+
+  header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 2px 12px rgba(0,76,69,.3);position:sticky;top:0;z-index:50;}
+  header .title{display:flex;align-items:center;gap:10px;}
+  header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+  header .logo-sm img{max-width:100%;max-height:100%;object-fit:contain;}
+  header .logo-sm .fallback{font-size:20px;}
+  header h1{margin:0;font-size:16px;font-weight:800;}
+  header .user{font-size:11px;color:var(--isd-yellow);text-transform:uppercase;
+    letter-spacing:.8px;font-weight:700;margin-top:2px;}
+
+  .toolbar{
+    background:#fff;padding:12px 16px;box-shadow:0 2px 8px rgba(0,76,69,.06);
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    position:sticky;top:60px;z-index:49;
+  }
+  .toolbar input{
+    flex:1;min-width:180px;padding:10px 14px;border:2px solid #D5DFDD;
+    border-radius:10px;font-size:14px;font-family:inherit;transition:border-color .2s;
+  }
+  .toolbar input:focus{outline:none;border-color:var(--isd-teal);}
+  .toolbar button{
+    padding:10px 16px;border:none;border-radius:10px;font-size:13px;
+    font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s;
+  }
+  .toolbar button:active{transform:scale(.97);}
+  .toolbar button.primary{background:var(--isd-teal);color:#fff;box-shadow:0 4px 12px rgba(0,76,69,.25);}
+  .toolbar button.green{background:linear-gradient(135deg,#38D430,#2BA824);color:#fff;box-shadow:0 4px 12px rgba(56,212,48,.3);}
+  .toolbar button.ghost{background:var(--isd-light-teal);color:var(--isd-teal);}
+
+  .container{max-width:960px;margin:0 auto;padding:16px 16px 40px;}
+
+  .info-banner{
+    background:linear-gradient(135deg,#E6F2F0,#D5E8E5);
+    border-left:4px solid var(--isd-teal);
+    padding:12px 16px;border-radius:10px;margin-bottom:16px;
+    font-size:13px;color:var(--isd-teal);font-weight:600;line-height:1.5;
+  }
+  .info-banner b{font-weight:800;}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;
+  }
+
+  .qr-card{
+    background:#fff;border:2px dashed var(--isd-teal);
+    border-radius:14px;padding:18px;text-align:center;
+    page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;
+    transition:transform .15s,box-shadow .15s;
+  }
+  .qr-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,76,69,.15);}
+
+  .qr-header{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;width:100%;}
+  .qr-logo{width:32px;height:32px;background:#fff;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    padding:2px;border:1px solid #E0E8E6;}
+  .qr-logo img{max-width:100%;max-height:100%;object-fit:contain;}
+  .qr-logo .fallback{font-size:16px;}
+  .qr-school{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+
+  .qr-code{width:180px;height:180px;background:#fff;padding:8px;border-radius:8px;
+    margin:8px 0 12px;display:flex;align-items:center;justify-content:center;}
+  .qr-code canvas{display:block;max-width:100%;max-height:100%;}
+
+  .qr-wc-code{font-family:'SF Mono',Consolas,monospace;font-weight:900;font-size:17px;
+    color:var(--isd-teal);margin-bottom:4px;letter-spacing:.5px;}
+  .qr-location{font-size:13px;color:var(--text);font-weight:700;margin-bottom:4px;}
+  .qr-meta{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:12px;}
+  .qr-divider{width:100%;border-top:1px solid #E0E8E6;margin:10px 0 8px;}
+  .qr-scan-text{font-size:12px;font-weight:800;color:var(--isd-teal);letter-spacing:.3px;}
+  .qr-scan-text span{color:var(--isd-green);}
+
+  .empty,.loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px;font-weight:600;}
+  .loading .spinner{width:40px;height:40px;border:4px solid var(--isd-light-teal);
+    border-top-color:var(--isd-teal);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .login-banner{background:#fff;border-radius:16px;padding:32px 24px;
+    text-align:center;margin:40px auto;max-width:400px;box-shadow:0 4px 20px rgba(0,76,69,.1);}
+  .login-banner .icon{font-size:52px;margin-bottom:12px;}
+  .login-banner h2{margin:0 0 8px;color:var(--isd-teal);font-weight:800;}
+  .login-banner p{color:var(--muted);font-size:14px;margin:0 0 20px;}
+  .login-banner button{display:inline-block;padding:14px 32px;background:var(--isd-teal);
+    color:#fff;border-radius:10px;border:none;font-weight:800;font-size:15px;
+    cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(0,76,69,.3);}
+
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:var(--isd-teal);color:#fff;padding:12px 22px;border-radius:10px;
+    font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:999;
+    pointer-events:none;max-width:calc(100% - 40px);box-shadow:0 8px 24px rgba(0,76,69,.35);
+    text-align:center;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .hidden{display:none!important;}
+
+  /* PRINT STYLES */
+  @media print{
+    @page{size:A4;margin:10mm;}
+    body{background:#fff;padding:0;}
+    header,.toolbar,.info-banner,#toast{display:none!important;}
+    .container{padding:0;max-width:100%;}
+    .grid{grid-template-columns:1fr 1fr;gap:10mm;}
+    .qr-card{border:2px dashed var(--isd-teal);box-shadow:none;
+      padding:12mm 6mm;min-height:120mm;display:flex;flex-direction:column;justify-content:center;}
+    .qr-card:hover{transform:none;box-shadow:none;}
+    .qr-code{width:200px;height:200px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <div class="logo-sm">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="fallback" style="display:none;">🏫</div>
+    </div>
+    <div>
+      <h1>QR Code Generator</h1>
+      <div class="user" id="userName">--</div>
+    </div>
+  </div>
+</header>
+
+<div id="loginPrompt" class="login-banner hidden">
+  <div class="icon">🔐</div>
+  <h2>Admin Login Required</h2>
+  <p>Please login as admin to generate QR codes.</p>
+  <button onclick="goTo('app')">Open App →</button>
+</div>
+
+<div id="mainWrap" class="hidden">
+  <div class="toolbar">
+    <input id="searchQr" placeholder="🔍 Search washroom code or location..." oninput="renderQRs()">
+    <button class="primary" onclick="loadWashrooms()">🔄 Load / Refresh</button>
+    <button class="green" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="container">
+    <div class="info-banner">
+      💡 <b>Tip:</b> Print on A4 paper or vinyl sticker. Each QR is at least 5cm × 5cm.
+      Laminate for washroom humidity. QR codes stay valid forever — even if you edit washroom details later.
+    </div>
+
+    <div id="qrGrid" class="grid">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>Loading washrooms...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let session = null;
+let washrooms = [];
+
+function goTo(page) { window.location.href = page + '.html'; }
+
+// ═══════════════════════════════════════════════
+// JSONP HELPER
+// ═══════════════════════════════════════════════
+let _jsonpCounter = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    const query = Object.keys(params)
+      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]))
+      .join('&');
+    const url = API + '?' + query + '&callback=' + callbackName;
+
+    let scriptEl = null;
+    let timeoutId = null;
+    function cleanup() {
+      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      if (timeoutId) clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    timeoutId = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 30000);
+
+    scriptEl = document.createElement('script');
+    scriptEl.src = url;
+    scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); };
+    document.head.appendChild(scriptEl);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    session = JSON.parse(localStorage.getItem('isd_session')||'null');
+    if (!session || !session.token) {
+      document.getElementById('loginPrompt').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('mainWrap').classList.remove('hidden');
+    document.getElementById('userName').textContent = (session.name || '--') + ' · ' + (session.role||'');
+    loadWashrooms();
+  } catch(_) {
+    document.getElementById('loginPrompt').classList.remove('hidden');
+  }
+});
+
+// ═══════════════════════════════════════════════
+// LOAD WASHROOMS
+// ═══════════════════════════════════════════════
+function loadWashrooms() {
+  const grid = document.getElementById('qrGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading washrooms...</div></div>';
+
+  jsonp({ action: 'listWashrooms', token: session.token })
+    .then(data => {
+      if (!data.ok) {
+        grid.innerHTML = '<div class="empty">❌ ' + esc(data.error) + '</div>';
+        return;
+      }
+      if (!data.washrooms.length) {
+        grid.innerHTML = '<div class="empty">No washrooms yet. Add some in the Admin panel first.</div>';
+        return;
+      }
+
+      washrooms = [];
+      const promises = data.washrooms.map(w => {
+        return jsonp({ action: 'generateQRHash', token: session.token, code: w.code })
+          .then(h => {
+            washrooms.push({ ...w, qrUrl: h.ok ? h.url : `?c=${w.code}` });
+          })
+          .catch(() => {
+            washrooms.push({ ...w, qrUrl: `?c=${w.code}` });
+          });
+      });
+
+      Promise.all(promises).then(() => renderQRs());
+    })
+    .catch(err => {
+      grid.innerHTML = '<div class="empty">❌ Network error: ' + esc(err.message) + '</div>';
+    });
+}
+
+// ═══════════════════════════════════════════════
+// RENDER QRs
+// ═══════════════════════════════════════════════
+function renderQRs() {
+  const q = (document.getElementById('searchQr').value || '').toLowerCase();
+  const filtered = washrooms.filter(w =>
+    !q || w.code.toLowerCase().includes(q) || (w.location||'').toLowerCase().includes(q)
+  );
+
+  const grid = document.getElementById('qrGrid');
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No matching washrooms.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach(w => {
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    card.innerHTML = `
+      <div class="qr-header">
+        <div class="qr-logo">
+          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+               alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <div class="fallback" style="display:none;">🏫</div>
+        </div>
+        <div class="qr-school">International School Dhaka</div>
+      </div>
+
+      <div class="qr-code"><canvas></canvas></div>
+
+      <div class="qr-wc-code">${esc(w.code)}</div>
+      <div class="qr-location">📍 ${esc(w.location)}</div>
+      <div class="qr-meta">🚻 ${esc(w.type)}${w.orientation?' · 🧭 '+esc(w.orientation):''}</div>
+
+      <div class="qr-divider"></div>
+      <div class="qr-scan-text">Scan to Inspect <span>▸</span></div>
+    `;
+    grid.appendChild(card);
+
+    const canvas = card.querySelector('canvas');
+    QRCode.toCanvas(canvas, w.qrUrl, {
+      width: 180, margin: 1,
+      color: { dark: '#004C45', light: '#FFFFFF' },
+      errorCorrectionLevel: 'H'
+    }).catch(err => {
+      console.error('QR error for ' + w.code, err);
+      canvas.replaceWith(document.createTextNode('QR error'));
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function esc(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>
