@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ISD Admin">
+<link rel="manifest" href="manifest.json">
+<title>ISD Admin Panel</title>
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;--isd-teal-light:#0A6B62;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;--isd-orange:#FF5C35;
+    --isd-white:#FFFFFF;--isd-gray:#F5F7F6;--isd-light-teal:#E6F2F0;
+    --bg:#F5F7F6;--card:#FFFFFF;--text:#004C45;--muted:#5C7B77;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);overscroll-behavior-y:contain;}
+  body{min-height:100vh;padding-top:var(--safe-t);}
+  input,textarea,select,button{font-family:inherit;font-size:16px;}
+
+  header{background:linear-gradient(135deg,#004C45,#00332E);color:#fff;
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+    position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,76,69,.3);}
+  header .title{display:flex;align-items:center;gap:10px;}
+  header .logo-sm{width:36px;height:36px;background:#fff;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+  header .logo-sm img{max-width:100%;max-height:100%;object-fit:contain;}
+  header .logo-sm .fallback{font-size:20px;}
+  header h1{margin:0;font-size:16px;font-weight:800;}
+  header .user{font-size:11px;color:var(--isd-yellow);text-transform:uppercase;
+    letter-spacing:.8px;font-weight:700;margin-top:2px;}
+  header button{background:rgba(255,255,255,.15);color:#fff;border:none;
+    padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;
+    cursor:pointer;}
+
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #E0E8E6;
+    position:sticky;top:60px;z-index:49;overflow-x:auto;}
+  .tabs button{flex:1;min-width:110px;padding:14px 12px;background:none;border:none;
+    color:var(--muted);font-weight:800;font-size:13px;cursor:pointer;
+    border-bottom:3px solid transparent;transition:all .2s;font-family:inherit;
+    white-space:nowrap;}
+  .tabs button.active{color:var(--isd-teal);border-bottom-color:var(--isd-green);}
+
+  .container{max-width:640px;margin:0 auto;padding:14px;
+    padding-bottom:calc(100px + var(--safe-b));}
+
+  .search{width:100%;padding:12px 14px;border:2px solid #D5DFDD;border-radius:10px;
+    font-size:15px;background:#fff;margin-bottom:12px;transition:border-color .2s;}
+  .search:focus{outline:none;border-color:var(--isd-teal);}
+
+  .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;
+    box-shadow:0 2px 12px rgba(0,76,69,.08);}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .code{font-weight:800;font-size:15px;color:var(--isd-teal);
+    font-family:'SF Mono',Consolas,monospace;}
+  .meta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .pill{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:800;
+    text-transform:uppercase;white-space:nowrap;letter-spacing:.4px;}
+  .p-active{background:#DFF9DD;color:#1F7A1B;}
+  .p-inactive{background:#EEF2F1;color:#5C7B77;}
+  .p-under-repair{background:#FFF7BF;color:#8A6400;}
+  .p-under-cleaning{background:#DCEEEC;color:var(--isd-teal);}
+
+  .actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .actions button{flex:1;min-width:80px;padding:9px 10px;font-size:12px;
+    border-radius:8px;border:1.5px solid var(--isd-teal);background:#fff;
+    color:var(--isd-teal);font-weight:800;cursor:pointer;
+    transition:all .15s;font-family:inherit;}
+  .actions button:active{transform:scale(.97);}
+  .actions button.primary{background:var(--isd-teal);color:#fff;}
+  .actions button.danger{background:var(--isd-orange);color:#fff;
+    border-color:var(--isd-orange);}
+
+  .fab{position:fixed;bottom:calc(20px + var(--safe-b));right:20px;
+    width:58px;height:58px;border-radius:50%;
+    background:linear-gradient(135deg,#38D430,#2BA824);color:#fff;
+    font-size:30px;border:none;cursor:pointer;z-index:100;line-height:1;
+    box-shadow:0 6px 20px rgba(56,212,48,.4);font-weight:300;
+    display:flex;align-items:center;justify-content:center;}
+  .fab:active{transform:scale(.95);}
+
+  .modal{position:fixed;inset:0;background:rgba(0,51,46,.7);display:none;
+    z-index:200;align-items:flex-end;justify-content:center;
+    backdrop-filter:blur(4px);}
+  .modal.open{display:flex;}
+  .modal-box{background:#fff;width:100%;max-width:640px;
+    border-radius:24px 24px 0 0;padding:22px;max-height:92vh;overflow-y:auto;
+    animation:slideUp .3s cubic-bezier(.4,0,.2,1);}
+  @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .modal-box h2{margin:0 0 4px;font-size:18px;color:var(--isd-teal);font-weight:800;}
+  .modal-box .sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+
+  label{display:block;font-size:12px;font-weight:800;color:var(--isd-teal);
+    margin-top:14px;letter-spacing:.3px;text-transform:uppercase;}
+  label small{color:var(--isd-orange);font-weight:700;text-transform:none;
+    letter-spacing:0;font-size:11px;}
+  input,select,textarea{width:100%;padding:11px 12px;border:2px solid #D5DFDD;
+    border-radius:10px;margin-top:5px;font-size:15px;background:#FAFCFB;
+    font-family:inherit;transition:border-color .2s;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--isd-teal);
+    background:#fff;box-shadow:0 0 0 3px rgba(0,76,69,.1);}
+  input:disabled{background:#EEF2F1;color:#5C7B77;cursor:not-allowed;}
+
+  .btn-row{display:flex;gap:8px;margin-top:20px;}
+  .btn-row button{flex:1;padding:14px;border-radius:10px;font-size:15px;
+    font-weight:800;border:none;cursor:pointer;font-family:inherit;
+    transition:transform .1s;}
+  .btn-row button:active{transform:scale(.98);}
+  .btn-save{background:linear-gradient(135deg,#38D430,#2BA824);color:#fff;
+    box-shadow:0 4px 14px rgba(56,212,48,.35);}
+  .btn-cancel{background:var(--isd-light-teal);color:var(--isd-teal);}
+
+  .roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+  .role-chk{display:flex;align-items:center;gap:8px;padding:10px;
+    background:var(--isd-light-teal);border-radius:8px;font-size:13px;
+    cursor:pointer;font-weight:700;color:var(--isd-teal);}
+  .role-chk input{width:auto;margin:0;}
+
+  /* SETTINGS TAB SPECIFIC */
+  .setting-group{background:#fff;border-radius:14px;padding:16px;
+    margin-bottom:12px;box-shadow:0 2px 12px rgba(0,76,69,.08);}
+  .setting-group h3{margin:0 0 4px;font-size:14px;color:var(--isd-teal);
+    font-weight:800;display:flex;align-items:center;gap:8px;}
+  .setting-group .help{font-size:12px;color:var(--muted);margin-bottom:14px;
+    line-height:1.5;}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-bottom:1px solid #F0F4F3;}
+  .setting-row:last-child{border-bottom:none;}
+  .setting-row .lbl{font-size:13px;font-weight:700;color:var(--isd-teal);}
+  .setting-row .val{font-size:13px;color:var(--muted);font-weight:600;}
+
+  .days-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .day-chk{display:flex;align-items:center;justify-content:center;
+    width:46px;height:46px;background:var(--isd-light-teal);border-radius:10px;
+    font-size:12px;font-weight:800;color:var(--isd-teal);cursor:pointer;
+    transition:all .15s;user-select:none;border:2px solid transparent;}
+  .day-chk.checked{background:var(--isd-green);color:#fff;
+    border-color:#2BA824;box-shadow:0 2px 8px rgba(56,212,48,.3);}
+  .day-chk input{display:none;}
+
+  .holiday-row{display:flex;justify-content:space-between;align-items:center;
+    padding:8px 12px;background:var(--isd-light-teal);border-radius:8px;
+    margin-top:6px;font-size:13px;font-weight:700;color:var(--isd-teal);}
+  .holiday-row button{background:var(--isd-orange);color:#fff;border:none;
+    width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;
+    padding:0;font-weight:800;}
+
+  .force-logout{background:linear-gradient(135deg,#FF5C35,#C93B14);color:#fff;
+    border:none;padding:14px;border-radius:10px;font-size:14px;font-weight:800;
+    cursor:pointer;width:100%;margin-top:10px;font-family:inherit;
+    box-shadow:0 4px 14px rgba(255,92,53,.35);}
+  .force-logout:active{transform:scale(.98);}
+
+  .live-status{background:linear-gradient(135deg,#DFF9DD,#C9F0C5);
+    border-radius:10px;padding:12px 14px;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;
+    color:#1F7A1B;}
+  .live-status .dot{width:10px;height:10px;border-radius:50%;
+    background:#38D430;box-shadow:0 0 8px #38D430;animation:pulse 2s infinite;}
+  .live-status.closed{background:linear-gradient(135deg,#FFF7BF,#FFE999);
+    color:#8A6400;}
+  .live-status.closed .dot{background:#FFDA00;box-shadow:0 0 8px #FFDA00;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  #toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;
+    transform:translateX(-50%) translateY(120px);background:var(--isd-teal);color:#fff;
+    padding:12px 22px;border-radius:10px;font-size:13px;font-weight:700;
+    opacity:0;transition:all .3s;z-index:999;pointer-events:none;
+    max-width:calc(100% - 40px);box-shadow:0 8px 24px rgba(0,76,69,.35);
+    text-align:center;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .hidden{display:none!important;}
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px;
+    font-weight:600;}
+
+  .login-banner{background:#fff;border-radius:16px;padding:32px 24px;
+    text-align:center;margin:40px auto;max-width:400px;
+    box-shadow:0 4px 20px rgba(0,76,69,.1);}
+  .login-banner .icon{font-size:52px;margin-bottom:12px;}
+  .login-banner h2{margin:0 0 8px;color:var(--isd-teal);font-weight:800;}
+  .login-banner p{color:var(--muted);font-size:14px;margin:0 0 20px;}
+  .login-banner button{display:inline-block;padding:14px 32px;
+    background:var(--isd-teal);color:#fff;border-radius:10px;border:none;
+    font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;
+    box-shadow:0 4px 12px rgba(0,76,69,.3);}
+
+  .loc-btn{margin-top:8px;background:var(--isd-light-teal);color:var(--isd-teal);
+    padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:800;
+    cursor:pointer;width:100%;font-family:inherit;transition:all .15s;}
+  .loc-btn:active{transform:scale(.98);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <div class="logo-sm">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+           alt="ISD"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="fallback" style="display:none;">🏫</div>
+    </div>
+    <div>
+      <h1>Admin Panel</h1>
+      <div class="user" id="userName">--</div>
+    </div>
+  </div>
+</header>
+
+<div id="loginPrompt" class="login-banner hidden">
+  <div class="icon">🔐</div>
+  <h2>Admin Access Required</h2>
+  <p>Please login as admin to manage washrooms and staff.</p>
+  <button onclick="goTo('app')">Open App →</button>
+</div>
+
+<div id="adminMain" class="hidden">
+  <div class="tabs">
+    <button class="active" onclick="switchTab(event,'washrooms')">🚻 Washrooms</button>
+    <button onclick="switchTab(event,'staff')">👥 Staff</button>
+    <button onclick="switchTab(event,'settings')">⚙️ Settings</button>
+  </div>
+
+  <div class="container" id="washroomsTab">
+    <input id="searchWc" class="search" placeholder="🔍 Search by code or location..."
+           oninput="renderWashrooms()">
+    <div id="wcList"></div>
+  </div>
+
+  <div class="container hidden" id="staffTab">
+    <div id="staffList"></div>
+  </div>
+
+  <div class="container hidden" id="settingsTab">
+    <div id="settingsContent">
+      <div class="empty">Loading settings...</div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="fabClick()" id="fab">+</button>
+</div>
+
+<!-- WASHROOM MODAL -->
+<div class="modal" id="wcModal">
+  <div class="modal-box">
+    <h2 id="modalTitle">Add Washroom</h2>
+    <div class="sub" id="modalSub">Fill in the details below</div>
+
+    <label>Washroom Code * <small>(Immutable — QR depends on this)</small></label>
+    <input id="f_code" placeholder="WC-GF-001" autocomplete="off">
+
+    <label>Location *</label>
+    <input id="f_location" placeholder="Ground Floor East">
+
+    <label>Type *</label>
+    <select id="f_type">
+      <option>Male</option><option>Female</option>
+      <option>Unisex</option><option>Staff</option><option>Disabled</option>
+    </select>
+
+    <label>Orientation</label>
+    <select id="f_orientation">
+      <option value="">—</option>
+      <option>North</option><option>South</option><option>East</option><option>West</option>
+      <option>North-East</option><option>North-West</option>
+      <option>South-East</option><option>South-West</option>
+    </select>
+
+    <label>Latitude *</label>
+    <input id="f_lat" type="number" step="0.000001" placeholder="23.8103">
+
+    <label>Longitude *</label>
+    <input id="f_lng" type="number" step="0.000001" placeholder="90.4125">
+
+    <button class="loc-btn" onclick="useMyLocation()">📍 Use my current location</button>
+
+    <label>Zone</label>
+    <input id="f_zone" placeholder="GroundFloor">
+
+    <label>Status</label>
+    <select id="f_status">
+      <option>Active</option><option>Inactive</option>
+      <option>Under Repair</option><option>Under Cleaning</option>
+    </select>
+
+    <label>Scan Permission</label>
+    <select id="f_scanPerm" onchange="onScanPermChange()">
+      <option value="open">Open — anyone can scan</option>
+      <option value="restricted">Restricted — only allowed roles</option>
+      <option value="disabled">Disabled — no scanning</option>
+    </select>
+
+    <div id="rolesBlock" class="hidden">
+      <label>Allowed Roles</label>
+      <div class="roles-grid">
+        <label class="role-chk"><input type="checkbox" value="admin"> Admin</label>
+        <label class="role-chk"><input type="checkbox" value="supervisor"> Supervisor</label>
+        <label class="role-chk"><input type="checkbox" value="housekeeping"> Housekeeping</label>
+        <label class="role-chk"><input type="checkbox" value="viewer"> Viewer</label>
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="f_notes" rows="2" placeholder="Internal remarks..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveWashroom()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="modal" id="staffModal">
+  <div class="modal-box">
+    <h2 id="staffModalTitle">Add Staff</h2>
+    <div class="sub">New team member account</div>
+
+    <label>Staff ID *</label>
+    <input id="s_id" placeholder="HK-007">
+
+    <label>Name *</label>
+    <input id="s_name" placeholder="Ahmed Khan">
+
+    <label>PIN *</label>
+    <input id="s_pin" type="password" placeholder="4-digit PIN" inputmode="numeric">
+
+    <label>Role *</label>
+    <select id="s_role">
+      <option>housekeeping</option><option>supervisor</option>
+      <option>admin</option><option>viewer</option>
+    </select>
+
+    <label>Email <small>(for auto-login)</small></label>
+    <input id="s_email" type="email" placeholder="name@isdbd.org">
+
+    <label>Zone</label>
+    <input id="s_zone" placeholder="GroundFloor or ALL">
+
+    <label>Assigned Washrooms</label>
+    <input id="s_assigned" placeholder="WC-GF-001,WC-GF-002 or ALL">
+
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeStaffModal()">Cancel</button>
+      <button class="btn-save" onclick="saveStaff()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════ */
+var API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+
+/* ═══════════════════════════════════════════════
+   JSONP HELPER
+   ═══════════════════════════════════════════════ */
+var _jsonpCounter = 0;
+
+function jsonp(params) {
+  return new Promise(function(resolve, reject) {
+    var callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    var timeoutMs = 30000;
+
+    var query = Object.keys(params)
+      .map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
+      })
+      .join('&');
+    var url = API + '?' + query + '&callback=' + callbackName;
+
+    var scriptEl = null;
+    var timeoutId = null;
+
+    function cleanup() {
+      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      if (timeoutId) clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    timeoutId = setTimeout(function() {
+      cleanup();
+      reject(new Error('Request timeout'));
+    }, timeoutMs);
+
+    scriptEl = document.createElement('script');
+    scriptEl.src = url;
+    scriptEl.onerror = function() {
+      cleanup();
+      reject(new Error('Network error'));
+    };
+    document.head.appendChild(scriptEl);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+var session = null;
+var washrooms = [];
+var editingCode = null;
+var editingStaffId = null;
+var currentTab = 'washrooms';
+var configData = {};
+var holidaysList = [];
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════ */
+function goTo(page) {
+  window.location.href = page + '.html';
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    session = JSON.parse(localStorage.getItem('isd_session') || 'null');
+    if (!session) {
+      document.getElementById('loginPrompt').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('adminMain').classList.remove('hidden');
+    document.getElementById('userName').textContent =
+      (session.name || '--') + ' · ' + (session.role || '');
+    loadWashrooms();
+  } catch(_) {
+    document.getElementById('loginPrompt').classList.remove('hidden');
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════════ */
+function switchTab(e, tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('active'); });
+  e.target.classList.add('active');
+  document.getElementById('washroomsTab').classList.toggle('hidden', tab !== 'washrooms');
+  document.getElementById('staffTab').classList.toggle('hidden', tab !== 'staff');
+  document.getElementById('settingsTab').classList.toggle('hidden', tab !== 'settings');
+  document.getElementById('fab').style.display = tab === 'settings' ? 'none' : 'flex';
+  if (tab === 'washrooms') loadWashrooms();
+  if (tab === 'staff') loadStaff();
+  if (tab === 'settings') loadSettings();
+}
+
+function fabClick() {
+  if (currentTab === 'staff') openAddStaffModal();
+  else openAddModal();
+}
+
+/* ═══════════════════════════════════════════════
+   WASHROOMS
+   ═══════════════════════════════════════════════ */
+function loadWashrooms() {
+  jsonp({ action: 'listWashrooms', token: session.token })
+    .then(function(data) {
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      washrooms = data.washrooms;
+      renderWashrooms();
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function renderWashrooms() {
+  var q = (document.getElementById('searchWc').value || '').toLowerCase();
+  var filtered = washrooms.filter(function(w) {
+    return !q || w.code.toLowerCase().indexOf(q) > -1 || (w.location || '').toLowerCase().indexOf(q) > -1;
+  });
+  var el = document.getElementById('wcList');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty">No washrooms found.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(function(w) {
+    var st = (w.status || 'Active').toLowerCase().replace(/\s+/g, '-');
+    return '<div class="card">'
+      + '<div class="row">'
+      + '<div>'
+      + '<div class="code">' + esc(w.code) + '</div>'
+      + '<div class="meta">📍 ' + esc(w.location) + ' · ' + esc(w.type) + (w.orientation ? ' · ' + esc(w.orientation) : '') + '</div>'
+      + '<div class="meta">📌 ' + w.lat + ', ' + w.lng + ' · v' + (w.version || 1) + '</div>'
+      + '<div class="meta">🔍 Scan: <b>' + esc(w.scanPermission || 'open') + '</b>'
+      + (w.allowedRoles && w.allowedRoles.length ? ' [' + esc(w.allowedRoles.join(',')) + ']' : '') + '</div>'
+      + '</div>'
+      + '<div><span class="pill p-' + st + '">' + esc(w.status || 'Active') + '</span></div>'
+      + '</div>'
+      + '<div class="actions">'
+      + '<button class="primary" onclick="editWc(\'' + w.code + '\')">✏️ Edit</button>'
+      + '<button class="' + (w.status === 'Active' ? 'danger' : '') + '" onclick="toggleStatus(\'' + w.code + '\',\'' + (w.status === 'Active' ? 'Inactive' : 'Active') + '\')">'
+      + (w.status === 'Active' ? '⏸ Deactivate' : '▶ Activate')
+      + '</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openAddModal() {
+  editingCode = null;
+  document.getElementById('modalTitle').textContent = 'Add Washroom';
+  document.getElementById('modalSub').textContent = 'Fill in the details below';
+  ['f_code','f_location','f_lat','f_lng','f_zone','f_notes'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_type').value = 'Male';
+  document.getElementById('f_orientation').value = '';
+  document.getElementById('f_status').value = 'Active';
+  document.getElementById('f_scanPerm').value = 'open';
+  document.querySelectorAll('.role-chk input').forEach(function(c){ c.checked = false; });
+  document.getElementById('f_code').disabled = false;
+  onScanPermChange();
+  document.getElementById('wcModal').classList.add('open');
+}
+
+function editWc(code) {
+  var w = washrooms.find(function(x){ return x.code === code; });
+  if (!w) return;
+  editingCode = code;
+  document.getElementById('modalTitle').textContent = 'Edit ' + code;
+  document.getElementById('modalSub').textContent = 'QR codes stay valid after changes';
+  document.getElementById('f_code').value = w.code;
+  document.getElementById('f_code').disabled = true;
+  document.getElementById('f_location').value = w.location || '';
+  document.getElementById('f_type').value = w.type || 'Male';
+  document.getElementById('f_orientation').value = w.orientation || '';
+  document.getElementById('f_lat').value = w.lat || '';
+  document.getElementById('f_lng').value = w.lng || '';
+  document.getElementById('f_zone').value = w.zone || '';
+  document.getElementById('f_status').value = w.status || 'Active';
+  document.getElementById('f_scanPerm').value = w.scanPermission || 'open';
+  document.querySelectorAll('.role-chk input').forEach(function(c) {
+    c.checked = (w.allowedRoles || []).indexOf(c.value) > -1;
+  });
+  document.getElementById('f_notes').value = '';
+  onScanPermChange();
+  document.getElementById('wcModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('wcModal').classList.remove('open');
+}
+
+function onScanPermChange() {
+  var v = document.getElementById('f_scanPerm').value;
+  document.getElementById('rolesBlock').classList.toggle('hidden', v !== 'restricted');
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation) { toast('GPS not supported'); return; }
+  toast('📍 Getting location...');
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    document.getElementById('f_lat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('f_lng').value = pos.coords.longitude.toFixed(6);
+    toast('✅ Location captured');
+  }, function(err) { toast('❌ GPS failed: ' + err.message); }, {enableHighAccuracy:true});
+}
+
+function saveWashroom() {
+  var code = document.getElementById('f_code').value.trim();
+  var payload = {
+    action: editingCode ? 'updateWashroom' : 'addWashroom',
+    token: session.token,
+    code: code,
+    location: document.getElementById('f_location').value.trim(),
+    type: document.getElementById('f_type').value,
+    orientation: document.getElementById('f_orientation').value,
+    lat: parseFloat(document.getElementById('f_lat').value),
+    lng: parseFloat(document.getElementById('f_lng').value),
+    zone: document.getElementById('f_zone').value.trim(),
+    status: document.getElementById('f_status').value,
+    scanPermission: document.getElementById('f_scanPerm').value,
+    allowedRoles: Array.from(document.querySelectorAll('.role-chk input:checked')).map(function(c){ return c.value; }).join(','),
+    notes: document.getElementById('f_notes').value.trim()
+  };
+  if (!payload.code || !payload.location || !payload.lat || !payload.lng) {
+    toast('❌ Code, Location, Lat, Lng required'); return;
+  }
+  jsonp(payload)
+    .then(function(data) {
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      toast('✅ ' + (data.message || 'Saved'));
+      closeModal();
+      loadWashrooms();
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function toggleStatus(code, status) {
+  if (!confirm('Set ' + code + ' to "' + status + '"?')) return;
+  jsonp({ action: 'setWashroomStatus', token: session.token, code: code, status: status })
+    .then(function(data) {
+      if (data.ok) { toast('✅ ' + data.message); loadWashrooms(); }
+      else toast('❌ ' + data.error);
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+/* ═══════════════════════════════════════════════
+   STAFF
+   ═══════════════════════════════════════════════ */
+function loadStaff() {
+  jsonp({ action: 'getStaff', token: session.token })
+    .then(function(data) {
+      if (!data.ok) {
+        document.getElementById('staffList').innerHTML =
+          '<div class="empty">' + esc(data.error) + '</div>';
+        return;
+      }
+      if (!data.staff.length) {
+        document.getElementById('staffList').innerHTML =
+          '<div class="empty">No staff yet. Tap + to add.</div>';
+        return;
+      }
+      document.getElementById('staffList').innerHTML = data.staff.map(function(s) {
+        return '<div class="card">'
+          + '<div class="code">' + esc(s.name) + '</div>'
+          + '<div class="meta">🆔 ' + esc(s.id) + ' · ' + esc(s.role) + ' · Zone: ' + esc(s.zone || 'ALL') + '</div>'
+          + (s.email ? '<div class="meta">📧 ' + esc(s.email) + '</div>' : '')
+          + '<div class="meta">' + (s.active ? '✅ Active' : '⛔ Inactive') + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function openAddStaffModal() {
+  editingStaffId = null;
+  document.getElementById('staffModalTitle').textContent = 'Add Staff';
+  ['s_id','s_name','s_pin','s_email','s_zone','s_assigned'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('s_role').value = 'housekeeping';
+  document.getElementById('s_id').disabled = false;
+  document.getElementById('staffModal').classList.add('open');
+}
+
+function closeStaffModal() {
+  document.getElementById('staffModal').classList.remove('open');
+}
+
+function saveStaff() {
+  var p = {
+    action: 'addStaff',
+    token: session.token,
+    staffId: document.getElementById('s_id').value.trim(),
+    name: document.getElementById('s_name').value.trim(),
+    pin: document.getElementById('s_pin').value.trim(),
+    role: document.getElementById('s_role').value,
+    email: document.getElementById('s_email').value.trim(),
+    zone: document.getElementById('s_zone').value.trim() || 'ALL',
+    assignedWashrooms: document.getElementById('s_assigned').value.trim() || 'ALL'
+  };
+  if (!p.staffId || !p.name || !p.pin) { toast('❌ All * fields required'); return; }
+  jsonp(p)
+    .then(function(data) {
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      toast('✅ Staff added');
+      closeStaffModal();
+      loadStaff();
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════ */
+function loadSettings() {
+  var content = document.getElementById('settingsContent');
+  content.innerHTML = '<div class="empty">Loading settings...</div>';
+
+  jsonp({ action: 'getConfig', token: session.token })
+    .then(function(data) {
+      if (!data.ok) {
+        content.innerHTML = '<div class="empty">❌ ' + esc(data.error) + '</div>';
+        return;
+      }
+      configData = data.config;
+      holidaysList = String(configData.Holidays || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      renderSettings();
+    })
+    .catch(function(err) {
+      content.innerHTML = '<div class="empty">❌ ' + esc(err.message) + '</div>';
+    });
+}
+
+function renderSettings() {
+  var workingDays = String(configData.WorkingDays || '').split(',').map(function(s){ return s.trim(); });
+  var allDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var dayLabels = { Sun:'Sun', Mon:'Mon', Tue:'Tue', Wed:'Wed', Thu:'Thu', Fri:'Fri', Sat:'Sat' };
+
+  var html = '';
+
+  // Live status
+  html += '<div class="live-status" id="liveStatus">'
+    + '<span class="dot"></span>'
+    + '<span id="liveStatusText">Checking live status...</span>'
+    + '</div>';
+
+  // Shift timing
+  html += '<div class="setting-group">'
+    + '<h3>🕐 Shift Timing</h3>'
+    + '<div class="help">Staff can only login during these hours on working days.</div>'
+    + '<label>Shift Start</label>'
+    + '<input type="time" id="set_shiftStart" value="' + esc(configData.ShiftStart || '07:30') + '">'
+    + '<label>Shift End</label>'
+    + '<input type="time" id="set_shiftEnd" value="' + esc(configData.ShiftEnd || '17:30') + '">'
+    + '</div>';
+
+  // Session
+  html += '<div class="setting-group">'
+    + '<h3>⏱ Session Duration</h3>'
+    + '<div class="help">Auto-logout happens at shift end OR after this duration, whichever comes first.</div>'
+    + '<label>Session Hours</label>'
+    + '<input type="number" id="set_sessionHours" min="1" max="24" step="1" value="' + esc(configData.SessionHours || '10') + '">'
+    + '</div>';
+
+  // Working days
+  html += '<div class="setting-group">'
+    + '<h3>📅 Working Days</h3>'
+    + '<div class="help">Login is blocked on non-working days.</div>'
+    + '<div class="days-grid">';
+  allDays.forEach(function(d) {
+    var isChecked = workingDays.indexOf(d) > -1;
+    html += '<label class="day-chk' + (isChecked ? ' checked' : '') + '" '
+      + 'onclick="toggleDay(this)">'
+      + '<input type="checkbox" data-day="' + d + '" ' + (isChecked ? 'checked' : '') + '>'
+      + dayLabels[d]
+      + '</label>';
+  });
+  html += '</div></div>';
+
+  // Holidays
+  html += '<div class="setting-group">'
+    + '<h3>🏖 Holidays</h3>'
+    + '<div class="help">Login is blocked on these specific dates.</div>'
+    + '<div id="holidayList">';
+  if (holidaysList.length === 0) {
+    html += '<div style="font-size:12px;color:#999;padding:8px 0;">No holidays added</div>';
+  } else {
+    holidaysList.forEach(function(h, i) {
+      html += '<div class="holiday-row">'
+        + '<span>📅 ' + esc(h) + '</span>'
+        + '<button onclick="removeHoliday(' + i + ')">×</button>'
+        + '</div>';
+    });
+  }
+  html += '</div>'
+    + '<input type="date" id="newHoliday" style="margin-top:10px;">'
+    + '<button onclick="addHoliday()" style="background:#38D430;color:#fff;border:none;'
+    + 'padding:12px;border-radius:10px;font-size:14px;font-weight:800;width:100%;'
+    + 'margin-top:8px;cursor:pointer;font-family:inherit;">+ Add Holiday</button>'
+    + '</div>';
+
+  // Override
+  html += '<div class="setting-group">'
+    + '<h3>🔓 Emergency Override</h3>'
+    + '<div class="help">Allow login outside shift hours and on holidays (emergency only).</div>'
+    + '<select id="set_allowOutside">'
+    + '<option value="false"' + (configData.AllowOutsideShift !== 'true' ? ' selected' : '') + '>No — Enforce shift strictly</option>'
+    + '<option value="true"' + (configData.AllowOutsideShift === 'true' ? ' selected' : '') + '>Yes — Allow any time</option>'
+    + '</select>'
+    + '</div>';
+
+  // Force logout
+  html += '<div class="setting-group">'
+    + '<h3>🚪 Force Logout</h3>'
+    + '<div class="help">Immediately log out ALL users. They will need to re-login.</div>'
+    + '<button class="force-logout" onclick="forceLogout()">🚪 Log Out All Users Now</button>'
+    + '</div>';
+
+  // Save button
+  html += '<div class="btn-row" style="margin-top:20px;">'
+    + '<button class="btn-save" onclick="saveSettings()" style="padding:16px;">💾 Save All Settings</button>'
+    + '</div>';
+
+  document.getElementById('settingsContent').innerHTML = html;
+
+  // Load live status
+  loadLiveStatus();
+}
+
+function loadLiveStatus() {
+  jsonp({ action: 'shiftInfo' })
+    .then(function(data) {
+      if (!data.ok) return;
+      var el = document.getElementById('liveStatus');
+      var txt = document.getElementById('liveStatusText');
+      if (!el || !txt) return;
+      if (data.isWithinShift) {
+        txt.textContent = '🟢 Shift OPEN · ' + data.shiftStart + ' – ' + data.shiftEnd;
+        el.classList.remove('closed');
+      } else {
+        txt.textContent = '🟡 ' + data.currentReason;
+        el.classList.add('closed');
+      }
+    })
+    .catch(function(){});
+}
+
+function toggleDay(el) {
+  el.classList.toggle('checked');
+  var chk = el.querySelector('input');
+  chk.checked = el.classList.contains('checked');
+}
+
+function addHoliday() {
+  var val = document.getElementById('newHoliday').value;
+  if (!val) { toast('⚠️ Pick a date'); return; }
+  if (holidaysList.indexOf(val) > -1) { toast('⚠️ Already added'); return; }
+  holidaysList.push(val);
+  holidaysList.sort();
+  renderSettings();
+}
+
+function removeHoliday(i) {
+  holidaysList.splice(i, 1);
+  renderSettings();
+}
+
+function saveSettings() {
+  var shiftStart = document.getElementById('set_shiftStart').value;
+  var shiftEnd = document.getElementById('set_shiftEnd').value;
+  var sessionHours = document.getElementById('set_sessionHours').value;
+  var allowOutside = document.getElementById('set_allowOutside').value;
+
+  var selectedDays = Array.from(document.querySelectorAll('.day-chk.checked input'))
+    .map(function(c){ return c.getAttribute('data-day'); });
+
+  var updates = {
+    ShiftStart: shiftStart,
+    ShiftEnd: shiftEnd,
+    SessionHours: sessionHours,
+    WorkingDays: selectedDays.join(','),
+    Holidays: holidaysList.join(','),
+    AllowOutsideShift: allowOutside
+  };
+
+  jsonp({
+    action: 'saveConfig',
+    token: session.token,
+    config: JSON.stringify(updates)
+  })
+  .then(function(data) {
+    if (!data.ok) { toast('❌ ' + data.error); return; }
+    toast('✅ Settings saved!');
+    configData = Object.assign({}, configData, updates);
+    loadLiveStatus();
+  })
+  .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function forceLogout() {
+  if (!confirm('🚪 Force logout ALL users? Everyone will need to re-login.')) return;
+
+  // Set all sessions expired by writing empty token (server-side trick)
+  jsonp({ action: 'getConfig', token: session.token })
+    .then(function() {
+      toast('⚠️ Force logout requires server-side implementation');
+      alert('To force logout, set the ForceLogoutAt value in Config sheet to a future timestamp.');
+    });
+}
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════ */
+function esc(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._tid);
+  window._tid = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
