@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#004C45">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ISD WC">
 <link rel="manifest" href="manifest.json">
@@ -20,10 +21,30 @@
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background:linear-gradient(160deg,#004C45 0%,#00332E 100%);
     color:#fff;min-height:100vh;
-    display:flex;align-items:center;justify-content:center;
-    padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));
+    display:flex;flex-direction:column;align-items:center;
+    padding-top:calc(24px + env(safe-area-inset-top,0px));
+    padding-bottom:24px;
   }
-  .box{text-align:center;max-width:420px;width:100%;}
+  
+  /* Navigation Bar */
+  .navbar {
+    display: flex; gap: 8px; margin-bottom: 30px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px; border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .navbar a {
+    color: #fff; text-decoration: none; font-size: 13px; font-weight: 700;
+    padding: 10px 16px; border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .navbar a:hover, .navbar a.active {
+    background: #fff; color: var(--isd-teal);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .box{text-align:center;max-width:420px;width:100%;padding:0 24px;}
   .logo-wrap{
     width:110px;height:110px;margin:0 auto 16px;
     background:#fff;border-radius:24px;
@@ -37,6 +58,7 @@
   .sub{opacity:.85;font-size:14px;margin-bottom:6px;font-weight:500;}
   .school{font-size:11px;opacity:.65;letter-spacing:2px;
     text-transform:uppercase;margin-bottom:36px;font-weight:600;}
+    
   .btn{
     display:flex;align-items:center;justify-content:center;gap:10px;
     background:#fff;color:var(--isd-teal);text-decoration:none;
@@ -62,7 +84,7 @@
     font-size:9px;font-weight:700;letter-spacing:.5px;
   }
   .shift-banner{
-    margin-top:18px;padding:10px 14px;
+    margin-top:24px;padding:10px 14px;
     background:rgba(255,255,255,.08);
     border:1px solid rgba(255,255,255,.12);
     border-radius:10px;font-size:12px;
@@ -78,8 +100,16 @@
 </style>
 </head>
 <body>
-<div class="box">
 
+<!-- NAVIGATION MENU -->
+<nav class="navbar">
+  <a href="index.html" class="active">🏠 Home</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="admin.html">⚙️ Admin</a>
+  <a href="qr-generator.html">🖨️ QRs</a>
+</nav>
+
+<div class="box">
   <div class="logo-wrap">
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
          alt="ISD"
@@ -96,11 +126,6 @@
     <span>Open Scanner App</span>
   </button>
 
-  <button onclick="goTo('dashboard')" class="btn secondary">
-    <span class="icon">📊</span>
-    <span>View Dashboard</span>
-  </button>
-
   <div class="shift-banner" id="shiftBanner">
     <span class="dot"></span>
     <span id="shiftText">Checking shift status...</span>
@@ -110,43 +135,54 @@
     <span>Powered by</span>
     <span class="badge">ISD MIS DEPT</span>
   </div>
-
 </div>
 
 <script>
 // ═══════════════════════════════════════════════
-// CONFIG — Apps Script backend URL
+// CONFIG
 // ═══════════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 
-// ═══════════════════════════════════════════════
-// NAVIGATION — direct .html links (no iframe issues on GitHub Pages)
-// ═══════════════════════════════════════════════
 function goTo(page) {
   window.location.href = page + '.html';
 }
 
 // ═══════════════════════════════════════════════
-// AUTO-REDIRECT IF QR PARAM PRESENT
+// JSONP HELPER (to fetch shift info)
 // ═══════════════════════════════════════════════
-(function(){
-  try {
-    var p = new URLSearchParams(location.search);
-    if (p.get('c')) {
-      var target = 'app.html?c=' + encodeURIComponent(p.get('c'))
-        + (p.get('h') ? '&h=' + encodeURIComponent(p.get('h')) : '');
-      window.location.replace(target);
+let _jsonpCounter = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    const query = Object.keys(params)
+      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]))
+      .join('&');
+    const url = API + '?' + query + '&callback=' + callbackName;
+
+    let scriptEl = null;
+    let timeoutId = null;
+    function cleanup() {
+      if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      if (timeoutId) clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; }
     }
-  } catch(_) {}
-})();
+
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    timeoutId = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 30000);
+
+    scriptEl = document.createElement('script');
+    scriptEl.src = url;
+    scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); };
+    document.head.appendChild(scriptEl);
+  });
+}
 
 // ═══════════════════════════════════════════════
 // FETCH SHIFT STATUS
 // ═══════════════════════════════════════════════
 (function loadShift() {
-  fetch(API + '?action=shiftInfo')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
+  jsonp({ action: 'shiftInfo' })
+    .then(data => {
       if (!data.ok) return;
       var text = document.getElementById('shiftText');
       var banner = document.getElementById('shiftBanner');
@@ -158,7 +194,7 @@ function goTo(page) {
         text.textContent = '🟡 ' + (data.currentReason || 'Outside shift hours');
       }
     })
-    .catch(function(){
+    .catch(() => {
       document.getElementById('shiftText').textContent = '⚠️ Could not load shift info';
     });
 })();
