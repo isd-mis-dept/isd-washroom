@@ -20,6 +20,7 @@
     --safe-b:env(safe-area-inset-bottom,0px);
     --safe-t:env(safe-area-inset-top,0px);
   }
+  
   /* Universal Navigation */
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:var(--isd-light-teal); white-space:nowrap; transition:all .2s; }
@@ -272,17 +273,17 @@
 
 <div id="loading"><div class="spinner"></div><div id="loadingMsg">Loading...</div></div>
 <div id="toast"></div>
-// ═══════════════════════════════════════════════
-// DYNAMIC UI CONFIG LOADER (Add to all files)
-// ═══════════════════════════════════════════════
+
+<script>
+/* ═══════════════════════════════════════════════
+   DYNAMIC UI CONFIG LOADER
+   ═══════════════════════════════════════════════ */
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
 let GLOBAL_UI = {};
 
-// Load config before showing the app
-async function loadUIBootstrapper() {
+function loadUIBootstrapper() {
   return new Promise((resolve) => {
-    // 1. Fetch public config from the known bootstrap URL
     const cb = 'bootCb_' + Date.now();
     window[cb] = function(data) {
       delete window[cb];
@@ -296,7 +297,6 @@ async function loadUIBootstrapper() {
         }
         if (data.AppName) {
           document.title = data.AppName + ' - ' + (data.SchoolName || '');
-          // Update any visible app titles on the page
           const h1s = document.querySelectorAll('h1');
           h1s.forEach(el => {
             if (el.textContent.includes('ISD Washroom') || el.textContent.includes('Washroom')) {
@@ -318,14 +318,9 @@ async function loadUIBootstrapper() {
     document.head.appendChild(s);
   });
 }
-<script>
-/* ═══════════════════════════════════════════════
-   CONFIG
-   ═══════════════════════════════════════════════ */
-var API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 
 /* ═══════════════════════════════════════════════
-   JSONP HELPER
+   JSONP HELPER (Uses GLOBAL_API)
    ═══════════════════════════════════════════════ */
 var _jsonpCounter = 0;
 
@@ -339,7 +334,8 @@ function jsonp(params) {
         return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]);
       })
       .join('&');
-    var url = API + '?' + query + '&callback=' + callbackName;
+    // ⭐ Use GLOBAL_API here
+    var url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
 
     var scriptEl = null;
     var timeoutId = null;
