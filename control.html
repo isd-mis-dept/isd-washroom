@@ -9,11 +9,9 @@
   :root{--isd-teal:#004C45;--isd-green:#38D430;--isd-orange:#FF5C35;--bg:#F5F7F6;--muted:#5C7B77;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
-  
   .top-nav { display:flex; justify-content:center; gap:8px; background:#fff; padding:10px; border-bottom:1px solid #E0E8E6; position:sticky; top:0; z-index:100; overflow-x:auto; }
   .top-nav a { text-decoration:none; color:var(--isd-teal); font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; background:#E6F2F0; white-space:nowrap; }
   .top-nav a.active { background:var(--isd-teal); color:#fff; }
-
   .container{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
   h1{font-size:20px;font-weight:800;margin-bottom:4px;}
   .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
@@ -44,8 +42,8 @@
   <div id="content">Loading...</div>
 </div>
 <script>
-// ⚠️ This is the ONLY hardcoded URL. The admin changes this here, and it updates everywhere else.
-const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec'; 
+const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let GLOBAL_API = BOOTSTRAP_API;
 let session = null;
 
 let _jsonpCounter = 0;
@@ -53,7 +51,7 @@ function jsonp(params) {
   return new Promise((resolve, reject) => {
     const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
     const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
-    const url = API + '?' + query + '&callback=' + callbackName;
+    const url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
     let scriptEl = null;
     function cleanup() { if (scriptEl) scriptEl.remove(); try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } }
     window[callbackName] = function(data) { cleanup(); resolve(data); };
@@ -61,7 +59,24 @@ function jsonp(params) {
   });
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function loadUIBootstrapper() {
+  return new Promise((resolve) => {
+    const cb = 'bootCb_' + Date.now();
+    window[cb] = function(data) {
+      delete window[cb];
+      if (data.ok) {
+        GLOBAL_API = data.API_URL || BOOTSTRAP_API;
+      }
+      resolve();
+    };
+    const s = document.createElement('script');
+    s.src = BOOTSTRAP_API + '?action=getPublicConfig&callback=' + cb;
+    document.head.appendChild(s);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadUIBootstrapper();
   session = JSON.parse(localStorage.getItem('isd_session')||'null');
   if (!session || session.role !== 'admin') {
     document.getElementById('content').innerHTML = '<div style="color:red;font-weight:bold;">❌ Admin Access Required</div>';
@@ -101,7 +116,7 @@ function renderUI(cfg) {
     <div class="card">
       <h3>🔌 API Configuration</h3>
       <label>Google Apps Script URL</label>
-      <input type="text" id="cfg_API_URL" value="${cfg.API_URL || '${API}'}">
+      <input type="text" id="cfg_API_URL" value="${cfg.API_URL || BOOTSTRAP_API}">
     </div>
     
     <div class="card">
