@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ISD Permissions</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --isd-teal:#004C45;--isd-teal-dark:#00332E;
+    --isd-green:#38D430;--isd-yellow:#FFDA00;
+    --isd-orange:#FF5C35;--isd-light-teal:#E6F2F0;
+    --bg:#F5F7F6;--card:#FFFFFF;--text:#004C45;--muted:#5C7B77;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);}
+  body{min-height:100vh;}
+
+  /* Navigation Bar */
+  .top-nav { 
+    display:flex; justify-content:center; gap:8px; background:#fff; 
+    padding:10px; border-bottom:1px solid #E0E8E6; 
+    position:sticky; top:0; z-index:100; overflow-x:auto; 
+  }
+  .top-nav a { 
+    text-decoration:none; color:var(--isd-teal); font-weight:800; 
+    font-size:13px; padding:8px 16px; border-radius:8px; 
+    background:var(--isd-light-teal); white-space:nowrap; 
+    transition:all .2s; 
+  }
+  .top-nav a.active { background:var(--isd-teal); color:#fff; }
+  .top-nav a:hover { opacity:0.8; }
+
+  .container{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+  
+  h1{font-size:22px;font-weight:800;margin:0 0 4px;color:var(--isd-teal);}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.5;}
+  
+  .role-card{
+    background:#fff;border-radius:14px;padding:18px;
+    margin-bottom:16px;box-shadow:0 2px 12px rgba(0,76,69,.08);
+  }
+  .role-card h3{
+    margin:0 0 14px;font-size:14px;color:var(--isd-teal);
+    text-transform:uppercase;letter-spacing:.8px;font-weight:800;
+    border-bottom:1px solid #F0F4F3;padding-bottom:10px;
+  }
+  
+  .perm-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 10px;background:#F8FAF9;border-radius:10px;
+    margin-bottom:8px;font-size:13px;font-weight:600;
+    cursor:pointer;transition:background 0.2s;
+  }
+  .perm-item:hover{background:var(--isd-light-teal);}
+  .perm-item:last-child{margin-bottom:0;}
+  
+  .perm-item input{
+    width:22px;height:22px;accent-color:var(--isd-green);
+    cursor:pointer;flex-shrink:0;
+  }
+
+  .btn-save{
+    background:linear-gradient(135deg,#38D430,#2BA824);
+    color:#fff;border:none;padding:18px;width:100%;
+    border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;
+    margin-top:24px;box-shadow:0 6px 20px rgba(56,212,48,.4);
+    transition:transform 0.1s;font-family:inherit;
+  }
+  .btn-save:active{transform:scale(0.98);}
+  .btn-save:disabled{opacity:0.7;cursor:not-allowed;}
+
+  .loading-banner{
+    text-align:center;padding:40px 20px;color:var(--muted);
+    font-size:14px;font-weight:600;
+  }
+  .spinner{
+    width:36px;height:36px;border:4px solid var(--isd-light-teal);
+    border-top-color:var(--isd-teal);border-radius:50%;
+    animation:spin 1s linear infinite;margin:0 auto 12px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  #toast{
+    position:fixed;bottom:20px;left:50%;
+    transform:translateX(-50%) translateY(100px);
+    background:var(--isd-teal);color:#fff;padding:12px 24px;
+    border-radius:10px;font-size:13px;font-weight:700;
+    opacity:0;transition:all .3s;z-index:9999;
+    box-shadow:0 8px 24px rgba(0,76,69,.35);
+    text-align:center;pointer-events:none;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- UNIVERSAL NAVIGATION -->
+<nav class="top-nav">
+  <a href="index.html">🏠 Home</a>
+  <a href="app.html">📷 Scanner</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html" class="active">🛡️ Perms</a>
+  <a href="qr-generator.html">🖨️ QRs</a>
+</nav>
+
+<div class="container">
+  <h1>Permission Matrix</h1>
+  <div class="sub">Control exactly what each role is allowed to do. Admin always has full access.</div>
+  <div id="content">
+    <div class="loading-banner">
+      <div class="spinner"></div>
+      Loading permissions...
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let session = null;
+let permsData = {};
+
+// The exact list of features that can be toggled
+const ALL_PERMS = [
+  { key: 'dashboard', label: '📊 View Dashboard & Analytics' },
+  { key: 'scan', label: '📷 Scan QR Codes & Submit' },
+  { key: 'registry', label: '📋 View Washroom Registry' },
+  { key: 'manage_washroom', label: '🚻 Add / Edit / Deactivate Washrooms' },
+  { key: 'reports', label: '📈 View Reports & Excel Export' },
+  { key: 'flagged', label: '⚠️ Verify Flagged GPS Scans' },
+  { key: 'qrgen', label: '🖨️ Generate & Print QR Codes' },
+  { key: 'staff', label: '👥 Manage Staff Accounts' }
+];
+
+// Excluding 'admin' because Admin ALWAYS has everything
+const ROLES = ['supervisor', 'housekeeping', 'viewer'];
+
+// ═══════════════════════════════════════════════
+// JSONP HELPER
+// ═══════════════════════════════════════════════
+let _jsonpCounter = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'isdCallback_' + (++_jsonpCounter) + '_' + Date.now();
+    const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
+    const url = API + '?' + query + '&callback=' + callbackName;
+    
+    let scriptEl = null;
+    let timeoutId = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 30000);
+    
+    function cleanup() { 
+      if (scriptEl) scriptEl.remove(); 
+      clearTimeout(timeoutId);
+      try { delete window[callbackName]; } catch(_) { window[callbackName] = undefined; } 
+    }
+    
+    window[callbackName] = function(data) { cleanup(); resolve(data); };
+    scriptEl = document.createElement('script'); 
+    scriptEl.src = url; 
+    scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); }; 
+    document.head.appendChild(scriptEl);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  session = JSON.parse(localStorage.getItem('isd_session')||'null');
+  
+  // Strict Admin Check
+  if (!session || session.role !== 'admin') {
+    document.getElementById('content').innerHTML = `
+      <div style="background:#FFE0D6;color:#C93B14;padding:24px;border-radius:12px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:10px;">🔒</div>
+        <h2 style="margin:0 0 8px;font-size:18px;">Admin Access Required</h2>
+        <p style="margin:0;font-size:14px;">You must be logged in as an Administrator to view this page.</p>
+        <a href="app.html" style="display:inline-block;margin-top:16px;background:#C93B14;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;">Go to Login</a>
+      </div>
+    `;
+    return;
+  }
+  
+  loadPerms();
+});
+
+// ═══════════════════════════════════════════════
+// LOAD & RENDER
+// ═══════════════════════════════════════════════
+function loadPerms() {
+  jsonp({ action: 'getConfig', token: session.token })
+    .then(res => {
+      if (!res.ok) throw new Error(res.error);
+      const cfg = res.config;
+      
+      // Parse the comma-separated string from the sheet into an array
+      ROLES.forEach(role => {
+        const saved = cfg['Perms_' + role];
+        permsData[role] = saved ? saved.split(',').filter(Boolean) : [];
+      });
+      
+      renderUI();
+    })
+    .catch(err => {
+      document.getElementById('content').innerHTML = `<div style="color:#C93B14;text-align:center;padding:20px;">❌ Error: ${err.message}</div>`;
+    });
+}
+
+function renderUI() {
+  let html = '';
+  
+  ROLES.forEach(role => {
+    // Capitalize first letter for display
+    const roleName = role.charAt(0).toUpperCase() + role.slice(1);
+    
+    html += `<div class="role-card">
+      <h3>👤 ${roleName} Role</h3>`;
+      
+    ALL_PERMS.forEach(p => {
+      const checked = permsData[role].includes(p.key) ? 'checked' : '';
+      html += `<label class="perm-item">
+        <span>${p.label}</span>
+        <input type="checkbox" data-role="${role}" data-perm="${p.key}" ${checked}>
+      </label>`;
+    });
+    
+    html += `</div>`;
+  });
+  
+  html += `<button class="btn-save" onclick="savePerms()">💾 Save Permissions</button>`;
+  document.getElementById('content').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════════
+function savePerms() {
+  const updates = {};
+  
+  ROLES.forEach(role => {
+    // Find all checked boxes for this role
+    const checked = Array.from(document.querySelectorAll(`input[data-role="${role}"]:checked`))
+      .map(el => el.dataset.perm);
+      
+    // Join into a comma-separated string (e.g. "dashboard,scan,reports")
+    updates['Perms_' + role] = checked.join(',');
+  });
+
+  const btn = document.querySelector('.btn-save');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+
+  jsonp({ 
+    action: 'saveConfig', 
+    token: session.token, 
+    config: JSON.stringify(updates) 
+  })
+  .then(res => {
+    btn.textContent = '💾 Save Permissions';
+    btn.disabled = false;
+    if (res.ok) {
+      toast('✅ Permissions updated successfully!');
+    } else {
+      toast('❌ Error: ' + res.error);
+    }
+  })
+  .catch(err => {
+    btn.textContent = '💾 Save Permissions';
+    btn.disabled = false;
+    toast('❌ ' + err.message);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTid);
+  window._toastTid = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
