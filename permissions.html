@@ -19,17 +19,35 @@
     background:var(--bg);color:var(--text);}
   body{min-height:100vh;}
 
+  /* Universal Mobile-Friendly Navigation */
   .top-nav { 
-    display:flex; justify-content:center; gap:8px; background:#fff; 
-    padding:10px; border-bottom:1px solid #E0E8E6; 
-    position:sticky; top:0; z-index:100; overflow-x:auto; 
+    display: flex; 
+    flex-wrap: wrap; /* ⭐ This allows buttons to go to the next line */
+    justify-content: center; 
+    gap: 6px; 
+    background: #fff; 
+    padding: 8px; 
+    border-bottom: 1px solid #E0E8E6; 
+    position: sticky; 
+    top: 0; 
+    z-index: 100; 
   }
   .top-nav a { 
-    text-decoration:none; color:var(--isd-teal); font-weight:800; 
-    font-size:13px; padding:8px 16px; border-radius:8px; 
-    background:var(--isd-light-teal); white-space:nowrap; 
-    transition:all .2s; 
+    text-decoration: none; 
+    color: var(--isd-teal); 
+    font-weight: 800; 
+    font-size: 12px; /* Slightly smaller text for mobile */
+    padding: 8px 12px; /* Slightly smaller padding */
+    border-radius: 8px; 
+    background: var(--isd-light-teal); 
+    white-space: nowrap; 
+    transition: all .2s; 
+    flex: 1 1 auto; /* Allows buttons to stretch and fill the row */
+    text-align: center;
+    max-width: 120px; /* Prevents them from getting too wide */
   }
+  .top-nav a.active { background: var(--isd-teal); color: #fff; }
+  .top-nav a:hover { opacity: 0.8; }
   .top-nav a.active { background:var(--isd-teal); color:#fff; }
   .top-nav a:hover { opacity:0.8; }
 
