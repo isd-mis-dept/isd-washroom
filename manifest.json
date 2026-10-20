@@ -1,10 +1,10 @@
 {
   "name": "ISD Washroom Inspection",
   "short_name": "ISD WC",
-  "description": "Washroom inspection system for International School Dhaka",
   "start_url": "./app.html",
-  "scope": "./",
   "display": "standalone",
+  "description": "Washroom inspection system for International School Dhaka",
+  "scope": "./",
   "orientation": "portrait",
   "background_color": "#004C45",
   "theme_color": "#004C45",
