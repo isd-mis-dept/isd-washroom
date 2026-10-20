@@ -40,9 +40,6 @@
   header h1{margin:0;font-size:16px;font-weight:800;}
   header .user{font-size:11px;color:var(--isd-yellow);text-transform:uppercase;
     letter-spacing:.8px;font-weight:700;margin-top:2px;}
-  header button{background:rgba(255,255,255,.15);color:#fff;border:none;
-    padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;
-    cursor:pointer;}
 
   .tabs{display:flex;background:#fff;border-bottom:1px solid #E0E8E6;
     position:sticky;top:110px;z-index:49;overflow-x:auto;}
@@ -79,8 +76,7 @@
     transition:all .15s;font-family:inherit;}
   .actions button:active{transform:scale(.97);}
   .actions button.primary{background:var(--isd-teal);color:#fff;}
-  .actions button.danger{background:var(--isd-orange);color:#fff;
-    border-color:var(--isd-orange);}
+  .actions button.danger{background:var(--isd-orange);color:#fff;border-color:var(--isd-orange);}
 
   .fab{position:fixed;bottom:calc(20px + var(--safe-b));right:20px;
     width:58px;height:58px;border-radius:50%;
@@ -91,8 +87,7 @@
   .fab:active{transform:scale(.95);}
 
   .modal{position:fixed;inset:0;background:rgba(0,51,46,.7);display:none;
-    z-index:200;align-items:flex-end;justify-content:center;
-    backdrop-filter:blur(4px);}
+    z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
   .modal.open{display:flex;}
   .modal-box{background:#fff;width:100%;max-width:640px;
     border-radius:24px 24px 0 0;padding:22px;max-height:92vh;overflow-y:auto;
@@ -103,8 +98,7 @@
 
   label{display:block;font-size:12px;font-weight:800;color:var(--isd-teal);
     margin-top:14px;letter-spacing:.3px;text-transform:uppercase;}
-  label small{color:var(--isd-orange);font-weight:700;text-transform:none;
-    letter-spacing:0;font-size:11px;}
+  label small{color:var(--isd-orange);font-weight:700;text-transform:none;letter-spacing:0;font-size:11px;}
   input,select,textarea{width:100%;padding:11px 12px;border:2px solid #D5DFDD;
     border-radius:10px;margin-top:5px;font-size:15px;background:#FAFCFB;
     font-family:inherit;transition:border-color .2s;}
@@ -114,8 +108,7 @@
 
   .btn-row{display:flex;gap:8px;margin-top:20px;}
   .btn-row button{flex:1;padding:14px;border-radius:10px;font-size:15px;
-    font-weight:800;border:none;cursor:pointer;font-family:inherit;
-    transition:transform .1s;}
+    font-weight:800;border:none;cursor:pointer;font-family:inherit;transition:transform .1s;}
   .btn-row button:active{transform:scale(.98);}
   .btn-save{background:linear-gradient(135deg,#38D430,#2BA824);color:#fff;
     box-shadow:0 4px 14px rgba(56,212,48,.35);}
@@ -131,8 +124,7 @@
     margin-bottom:12px;box-shadow:0 2px 12px rgba(0,76,69,.08);}
   .setting-group h3{margin:0 0 4px;font-size:14px;color:var(--isd-teal);
     font-weight:800;display:flex;align-items:center;gap:8px;}
-  .setting-group .help{font-size:12px;color:var(--muted);margin-bottom:14px;
-    line-height:1.5;}
+  .setting-group .help{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
   
   .days-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
   .day-chk{display:flex;align-items:center;justify-content:center;
@@ -151,13 +143,69 @@
 
   .live-status{background:linear-gradient(135deg,#DFF9DD,#C9F0C5);
     border-radius:10px;padding:12px 14px;margin-bottom:14px;
-    display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;
-    color:#1F7A1B;}
+    display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:#1F7A1B;}
   .live-status .dot{width:10px;height:10px;border-radius:50%;
     background:#38D430;box-shadow:0 0 8px #38D430;animation:pulse 2s infinite;}
   .live-status.closed{background:linear-gradient(135deg,#FFF7BF,#FFE999);color:#8A6400;}
   .live-status.closed .dot{background:#FFDA00;box-shadow:0 0 8px #FFDA00;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  /* ⭐ NEW: Override Card */
+  .override-card{
+    background:linear-gradient(135deg,#FF5C35,#C93B14);
+    border-radius:14px;padding:18px;margin-bottom:14px;
+    box-shadow:0 4px 20px rgba(255,92,53,.35);color:#fff;
+  }
+  .override-card.active{
+    background:linear-gradient(135deg,#38D430,#2BA824);
+    box-shadow:0 4px 20px rgba(56,212,48,.4);
+  }
+  .override-card h3{margin:0 0 8px;font-size:16px;font-weight:800;color:#fff;
+    display:flex;align-items:center;gap:8px;}
+  .override-card p{margin:0 0 14px;font-size:13px;line-height:1.5;opacity:.9;}
+  .override-btn{
+    background:#fff;color:#C93B14;border:none;padding:14px;
+    border-radius:10px;font-size:15px;font-weight:800;width:100%;
+    cursor:pointer;font-family:inherit;transition:transform .1s;
+  }
+  .override-card.active .override-btn{color:#1F7A1B;}
+  .override-btn:active{transform:scale(.98);}
+  .override-info{
+    margin-top:12px;padding:10px;background:rgba(255,255,255,.15);
+    border-radius:8px;font-size:12px;text-align:center;font-weight:700;
+  }
+
+  /* ⭐ NEW: Emergency Report Card */
+  .emergency-card{
+    background:linear-gradient(135deg,#004C45,#0A6B62);
+    border-radius:14px;padding:18px;margin-bottom:14px;
+    box-shadow:0 4px 20px rgba(0,76,69,.35);color:#fff;
+  }
+  .emergency-card h3{margin:0 0 8px;font-size:16px;font-weight:800;color:#fff;
+    display:flex;align-items:center;gap:8px;}
+  .emergency-card p{margin:0 0 14px;font-size:13px;line-height:1.5;opacity:.85;}
+  .emergency-card .date-row{display:flex;gap:8px;margin-bottom:12px;}
+  .emergency-card input{
+    flex:1;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);
+    color:#fff;padding:10px;border-radius:8px;font-size:13px;font-family:inherit;
+  }
+  .emergency-card input::placeholder{color:rgba(255,255,255,.7);}
+  .emergency-btn{
+    background:#FFDA00;color:#004C45;border:none;padding:14px;
+    border-radius:10px;font-size:15px;font-weight:800;width:100%;
+    cursor:pointer;font-family:inherit;transition:transform .1s;
+  }
+  .emergency-btn:active{transform:scale(.98);}
+  .emergency-results{
+    margin-top:14px;padding:14px;background:rgba(255,255,255,.1);
+    border-radius:10px;font-size:13px;line-height:1.6;
+  }
+  .emergency-results .stat{
+    display:flex;justify-content:space-between;padding:6px 0;
+    border-bottom:1px solid rgba(255,255,255,.15);
+  }
+  .emergency-results .stat:last-child{border-bottom:none;}
+  .emergency-results .stat b{font-size:15px;}
 
   #toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;
     transform:translateX(-50%) translateY(120px);background:var(--isd-teal);color:#fff;
@@ -224,6 +272,7 @@
     <button class="active" onclick="switchTab(event,'washrooms')">🚻 Washrooms</button>
     <button onclick="switchTab(event,'staff')">👥 Staff</button>
     <button onclick="switchTab(event,'settings')">⚙️ Settings</button>
+    <button onclick="switchTab(event,'emergency')">⚡ Emergency</button>
   </div>
 
   <div class="container" id="washroomsTab">
@@ -244,6 +293,12 @@
     </div>
   </div>
 
+  <div class="container hidden" id="emergencyTab">
+    <div id="emergencyContent">
+      <div class="empty">Loading...</div>
+    </div>
+  </div>
+
   <button class="fab" onclick="fabClick()" id="fab">+</button>
 </div>
 
@@ -255,45 +310,27 @@
 
     <label>Washroom Code * <small>(Immutable — QR depends on this)</small></label>
     <input id="f_code" placeholder="WC-GF-001" autocomplete="off">
-
     <label>Location *</label>
     <input id="f_location" placeholder="Ground Floor East">
-
     <label>Type *</label>
-    <select id="f_type">
-      <option>Male</option><option>Female</option><option>Unisex</option><option>Staff</option><option>Disabled</option>
-    </select>
-
+    <select id="f_type"><option>Male</option><option>Female</option><option>Unisex</option><option>Staff</option><option>Disabled</option></select>
     <label>Orientation</label>
-    <select id="f_orientation">
-      <option value="">—</option>
-      <option>North</option><option>South</option><option>East</option><option>West</option>
-      <option>North-East</option><option>North-West</option><option>South-East</option><option>South-West</option>
-    </select>
-
+    <select id="f_orientation"><option value="">—</option><option>North</option><option>South</option><option>East</option><option>West</option><option>North-East</option><option>North-West</option><option>South-East</option><option>South-West</option></select>
     <label>Latitude *</label>
     <input id="f_lat" type="number" step="0.000001" placeholder="23.8103">
-
     <label>Longitude *</label>
     <input id="f_lng" type="number" step="0.000001" placeholder="90.4125">
-
     <button class="loc-btn" onclick="useMyLocation()">📍 Use my current location</button>
-
     <label>Zone</label>
     <input id="f_zone" placeholder="GroundFloor">
-
     <label>Status</label>
-    <select id="f_status">
-      <option>Active</option><option>Inactive</option><option>Under Repair</option><option>Under Cleaning</option>
-    </select>
-
+    <select id="f_status"><option>Active</option><option>Inactive</option><option>Under Repair</option><option>Under Cleaning</option></select>
     <label>Scan Permission</label>
     <select id="f_scanPerm" onchange="onScanPermChange()">
       <option value="open">Open — anyone can scan</option>
       <option value="restricted">Restricted — only allowed roles</option>
       <option value="disabled">Disabled — no scanning</option>
     </select>
-
     <div id="rolesBlock" class="hidden">
       <label>Allowed Roles</label>
       <div class="roles-grid">
@@ -303,10 +340,8 @@
         <label class="role-chk"><input type="checkbox" value="viewer"> Viewer</label>
       </div>
     </div>
-
     <label>Notes</label>
     <textarea id="f_notes" rows="2" placeholder="Internal remarks..."></textarea>
-
     <div class="btn-row">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-save" onclick="saveWashroom()">💾 Save</button>
@@ -322,33 +357,23 @@
 
     <label>Staff ID * <small id="staffIdHelp">(Cannot be changed after creation)</small></label>
     <input id="s_id" placeholder="HK-007">
-
     <label>Name *</label>
     <input id="s_name" placeholder="Ahmed Khan">
-
     <label>PIN * <small>(Leave blank to keep current PIN)</small></label>
     <input id="s_pin" type="password" placeholder="4-digit PIN" inputmode="numeric">
-
     <label>Role *</label>
-    <select id="s_role">
-      <option>housekeeping</option><option>supervisor</option><option>admin</option><option>viewer</option>
-    </select>
-
+    <select id="s_role"><option>housekeeping</option><option>supervisor</option><option>admin</option><option>viewer</option></select>
     <label>Email <small>(for auto-login)</small></label>
     <input id="s_email" type="email" placeholder="name@isdbd.org">
-
     <label>Zone</label>
     <input id="s_zone" placeholder="GroundFloor or ALL">
-
     <label>Assigned Washrooms</label>
     <input id="s_assigned" placeholder="WC-GF-001,WC-GF-002 or ALL">
-
     <label>Status</label>
     <select id="s_active">
       <option value="true">✅ Active (can login)</option>
       <option value="false">⛔ Inactive (cannot login)</option>
     </select>
-
     <div class="btn-row">
       <button class="btn-cancel" onclick="closeStaffModal()">Cancel</button>
       <button class="btn-save" onclick="saveStaff()">💾 Save</button>
@@ -409,6 +434,7 @@ var editingStaffId = null;
 var currentTab = 'washrooms';
 var configData = {};
 var holidaysList = [];
+var overrideActive = false;
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadUIBootstrapper();
@@ -433,10 +459,12 @@ function switchTab(e, tab) {
   document.getElementById('washroomsTab').classList.toggle('hidden', tab !== 'washrooms');
   document.getElementById('staffTab').classList.toggle('hidden', tab !== 'staff');
   document.getElementById('settingsTab').classList.toggle('hidden', tab !== 'settings');
-  document.getElementById('fab').style.display = tab === 'settings' ? 'none' : 'flex';
+  document.getElementById('emergencyTab').classList.toggle('hidden', tab !== 'emergency');
+  document.getElementById('fab').style.display = (tab === 'settings' || tab === 'emergency') ? 'none' : 'flex';
   if (tab === 'washrooms') loadWashrooms();
   if (tab === 'staff') loadStaff();
   if (tab === 'settings') loadSettings();
+  if (tab === 'emergency') loadEmergency();
 }
 
 function fabClick() {
@@ -470,23 +498,18 @@ function renderWashrooms() {
   el.innerHTML = filtered.map(function(w) {
     var st = (w.status || 'Active').toLowerCase().replace(/\s+/g, '-');
     return '<div class="card">'
-      + '<div class="row">'
-      + '<div>'
+      + '<div class="row"><div>'
       + '<div class="code">' + esc(w.code) + '</div>'
       + '<div class="meta">📍 ' + esc(w.location) + ' · ' + esc(w.type) + (w.orientation ? ' · ' + esc(w.orientation) : '') + '</div>'
       + '<div class="meta">📌 ' + w.lat + ', ' + w.lng + ' · v' + (w.version || 1) + '</div>'
       + '<div class="meta">🔍 Scan: <b>' + esc(w.scanPermission || 'open') + '</b>'
       + (w.allowedRoles && w.allowedRoles.length ? ' [' + esc(w.allowedRoles.join(',')) + ']' : '') + '</div>'
-      + '</div>'
-      + '<div><span class="pill p-' + st + '">' + esc(w.status || 'Active') + '</span></div>'
-      + '</div>'
+      + '</div><div><span class="pill p-' + st + '">' + esc(w.status || 'Active') + '</span></div></div>'
       + '<div class="actions">'
       + '<button class="primary" onclick="editWc(\'' + w.code + '\')">✏️ Edit</button>'
       + '<button class="' + (w.status === 'Active' ? 'danger' : '') + '" onclick="toggleStatus(\'' + w.code + '\',\'' + (w.status === 'Active' ? 'Inactive' : 'Active') + '\')">'
       + (w.status === 'Active' ? '⏸ Deactivate' : '▶ Activate')
-      + '</button>'
-      + '</div>'
-      + '</div>';
+      + '</button></div></div>';
   }).join('');
 }
 
@@ -494,9 +517,7 @@ function openAddModal() {
   editingCode = null;
   document.getElementById('modalTitle').textContent = 'Add Washroom';
   document.getElementById('modalSub').textContent = 'Fill in the details below';
-  ['f_code','f_location','f_lat','f_lng','f_zone','f_notes'].forEach(function(id) {
-    document.getElementById(id).value = '';
-  });
+  ['f_code','f_location','f_lat','f_lng','f_zone','f_notes'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('f_type').value = 'Male';
   document.getElementById('f_orientation').value = '';
   document.getElementById('f_status').value = 'Active';
@@ -523,17 +544,13 @@ function editWc(code) {
   document.getElementById('f_zone').value = w.zone || '';
   document.getElementById('f_status').value = w.status || 'Active';
   document.getElementById('f_scanPerm').value = w.scanPermission || 'open';
-  document.querySelectorAll('.role-chk input').forEach(function(c) {
-    c.checked = (w.allowedRoles || []).indexOf(c.value) > -1;
-  });
+  document.querySelectorAll('.role-chk input').forEach(function(c) { c.checked = (w.allowedRoles || []).indexOf(c.value) > -1; });
   document.getElementById('f_notes').value = '';
   onScanPermChange();
   document.getElementById('wcModal').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('wcModal').classList.remove('open');
-}
+function closeModal() { document.getElementById('wcModal').classList.remove('open'); }
 
 function onScanPermChange() {
   var v = document.getElementById('f_scanPerm').value;
@@ -551,11 +568,10 @@ function useMyLocation() {
 }
 
 function saveWashroom() {
-  var code = document.getElementById('f_code').value.trim();
   var payload = {
     action: editingCode ? 'updateWashroom' : 'addWashroom',
     token: session.token,
-    code: code,
+    code: document.getElementById('f_code').value.trim(),
     location: document.getElementById('f_location').value.trim(),
     type: document.getElementById('f_type').value,
     orientation: document.getElementById('f_orientation').value,
@@ -567,9 +583,7 @@ function saveWashroom() {
     allowedRoles: Array.from(document.querySelectorAll('.role-chk input:checked')).map(function(c){ return c.value; }).join(','),
     notes: document.getElementById('f_notes').value.trim()
   };
-  if (!payload.code || !payload.location || !payload.lat || !payload.lng) {
-    toast('❌ Code, Location, Lat, Lng required'); return;
-  }
+  if (!payload.code || !payload.location || !payload.lat || !payload.lng) { toast('❌ All * fields required'); return; }
   jsonp(payload)
     .then(function(data) {
       if (!data.ok) { toast('❌ ' + data.error); return; }
@@ -611,41 +625,28 @@ function renderStaff() {
   var filtered = staffList.filter(function(s) {
     return !q || (s.name || '').toLowerCase().indexOf(q) > -1 || (s.id || '').toLowerCase().indexOf(q) > -1;
   });
-  
   var el = document.getElementById('staffList');
-  
-  if (!filtered.length) {
-    el.innerHTML = '<div class="empty">No staff found. Tap + to add.</div>';
-    return;
-  }
+  if (!filtered.length) { el.innerHTML = '<div class="empty">No staff found. Tap + to add.</div>'; return; }
   
   el.innerHTML = filtered.map(function(s) {
     var isActive = s.active === true;
     return '<div class="card">'
-      + '<div class="row">'
-      + '<div>'
+      + '<div class="row"><div>'
       + '<div class="code">' + esc(s.name) + '</div>'
       + '<div class="meta">🆔 ' + esc(s.id) + ' · ' + esc(s.role) + ' · Zone: ' + esc(s.zone || 'ALL') + '</div>'
       + (s.email ? '<div class="meta">📧 ' + esc(s.email) + '</div>' : '<div class="meta" style="color:#c9881f;">⚠️ No email (PIN login only)</div>')
-      + '</div>'
-      + '<div><span class="pill ' + (isActive ? 'p-active' : 'p-inactive') + '">' + (isActive ? '✅ Active' : '⛔ Inactive') + '</span></div>'
-      + '</div>'
+      + '</div><div><span class="pill ' + (isActive ? 'p-active' : 'p-inactive') + '">' + (isActive ? '✅ Active' : '⛔ Inactive') + '</span></div></div>'
       + '<div class="actions">'
       + '<button class="primary" onclick="editStaff(\'' + esc(s.id) + '\')">✏️ Edit</button>'
       + '<button class="' + (isActive ? 'danger' : '') + '" onclick="toggleStaffStatus(\'' + esc(s.id) + '\', ' + (!isActive) + ')">'
-      + (isActive ? '⏸ Deactivate' : '▶ Activate')
-      + '</button>'
-      + '</div>'
-      + '</div>';
+      + (isActive ? '⏸ Deactivate' : '▶ Activate') + '</button></div></div>';
   }).join('');
 }
 
 function openAddStaffModal() {
   editingStaffId = null;
   document.getElementById('staffModalTitle').textContent = 'Add Staff';
-  ['s_id','s_name','s_pin','s_email','s_zone','s_assigned'].forEach(function(id) {
-    document.getElementById(id).value = '';
-  });
+  ['s_id','s_name','s_pin','s_email','s_zone','s_assigned'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('s_role').value = 'housekeeping';
   document.getElementById('s_active').value = 'true';
   document.getElementById('s_id').disabled = false;
@@ -656,30 +657,25 @@ function openAddStaffModal() {
 function editStaff(staffId) {
   var s = staffList.find(function(x){ return x.id === staffId; });
   if (!s) return;
-  
   editingStaffId = staffId;
   document.getElementById('staffModalTitle').textContent = 'Edit ' + s.name;
   document.getElementById('s_id').value = s.id;
   document.getElementById('s_id').disabled = true;
   document.getElementById('staffIdHelp').style.display = 'inline';
   document.getElementById('s_name').value = s.name || '';
-  document.getElementById('s_pin').value = ''; // Blank = keep current PIN
+  document.getElementById('s_pin').value = '';
   document.getElementById('s_role').value = s.role || 'housekeeping';
   document.getElementById('s_email').value = s.email || '';
   document.getElementById('s_zone').value = s.zone || '';
   document.getElementById('s_assigned').value = s.assignedWashrooms || '';
   document.getElementById('s_active').value = s.active ? 'true' : 'false';
-  
   document.getElementById('staffModal').classList.add('open');
 }
 
-function closeStaffModal() {
-  document.getElementById('staffModal').classList.remove('open');
-}
+function closeStaffModal() { document.getElementById('staffModal').classList.remove('open'); }
 
 function saveStaff() {
   var isEdit = !!editingStaffId;
-  
   var p = {
     action: isEdit ? 'updateStaff' : 'addStaff',
     token: session.token,
@@ -692,18 +688,8 @@ function saveStaff() {
     assignedWashrooms: document.getElementById('s_assigned').value.trim() || 'ALL',
     active: document.getElementById('s_active').value === 'true'
   };
-  
-  if (!p.staffId || !p.name) {
-    toast('❌ Staff ID and Name required');
-    return;
-  }
-  
-  // PIN required only when adding new staff
-  if (!isEdit && !p.pin) {
-    toast('❌ PIN required for new staff');
-    return;
-  }
-  
+  if (!p.staffId || !p.name) { toast('❌ Staff ID and Name required'); return; }
+  if (!isEdit && !p.pin) { toast('❌ PIN required for new staff'); return; }
   jsonp(p)
     .then(function(data) {
       if (!data.ok) { toast('❌ ' + data.error); return; }
@@ -717,22 +703,14 @@ function saveStaff() {
 function toggleStaffStatus(staffId, newActive) {
   var action = newActive ? 'activate' : 'deactivate';
   if (!confirm('Are you sure you want to ' + action + ' staff ' + staffId + '?')) return;
-  
-  jsonp({
-    action: 'updateStaff',
-    token: session.token,
-    staffId: staffId,
-    active: newActive
-  })
-  .then(function(data) {
-    if (data.ok) {
-      toast('✅ Staff ' + (newActive ? 'activated' : 'deactivated'));
-      loadStaff();
-    } else {
-      toast('❌ ' + data.error);
-    }
-  })
-  .catch(function(err) { toast('❌ ' + err.message); });
+  jsonp({ action: 'updateStaff', token: session.token, staffId: staffId, active: newActive })
+    .then(function(data) {
+      if (data.ok) {
+        toast('✅ Staff ' + (newActive ? 'activated' : 'deactivated'));
+        loadStaff();
+      } else toast('❌ ' + data.error);
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
 }
 
 /* ═══════════════════════════════════════════════
@@ -744,93 +722,44 @@ function loadSettings() {
 
   jsonp({ action: 'getConfig', token: session.token })
     .then(function(data) {
-      if (!data.ok) {
-        content.innerHTML = '<div class="empty">❌ ' + esc(data.error) + '</div>';
-        return;
-      }
+      if (!data.ok) { content.innerHTML = '<div class="empty">❌ ' + esc(data.error) + '</div>'; return; }
       configData = data.config;
       holidaysList = String(configData.Holidays || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
       renderSettings();
     })
-    .catch(function(err) {
-      content.innerHTML = '<div class="empty">❌ ' + esc(err.message) + '</div>';
-    });
+    .catch(function(err) { content.innerHTML = '<div class="empty">❌ ' + esc(err.message) + '</div>'; });
 }
 
 function renderSettings() {
   var workingDays = String(configData.WorkingDays || '').split(',').map(function(s){ return s.trim(); });
   var allDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
   var html = '';
 
-  html += '<div class="live-status" id="liveStatus">'
-    + '<span class="dot"></span>'
-    + '<span id="liveStatusText">Checking live status...</span>'
-    + '</div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>🕐 Shift Timing</h3>'
-    + '<div class="help">Staff can only login during these hours on working days.</div>'
-    + '<label>Shift Start</label>'
-    + '<input type="time" id="set_shiftStart" value="' + esc(configData.ShiftStart || '07:30') + '">'
-    + '<label>Shift End</label>'
-    + '<input type="time" id="set_shiftEnd" value="' + esc(configData.ShiftEnd || '17:30') + '">'
-    + '</div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>⏱ Session Duration</h3>'
-    + '<div class="help">Auto-logout happens at shift end OR after this duration, whichever comes first.</div>'
-    + '<label>Session Hours</label>'
-    + '<input type="number" id="set_sessionHours" min="1" max="24" step="1" value="' + esc(configData.SessionHours || '10') + '">'
-    + '</div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>📅 Working Days</h3>'
-    + '<div class="help">Login is blocked on non-working days.</div>'
-    + '<div class="days-grid">';
+  html += '<div class="live-status" id="liveStatus"><span class="dot"></span><span id="liveStatusText">Checking live status...</span></div>';
+  html += '<div class="setting-group"><h3>🕐 Shift Timing</h3><div class="help">Staff can only login during these hours on working days.</div>'
+    + '<label>Shift Start</label><input type="time" id="set_shiftStart" value="' + esc(configData.ShiftStart || '07:30') + '">'
+    + '<label>Shift End</label><input type="time" id="set_shiftEnd" value="' + esc(configData.ShiftEnd || '17:30') + '"></div>';
+  html += '<div class="setting-group"><h3>⏱ Session Duration</h3><div class="help">Auto-logout happens at shift end OR after this duration.</div>'
+    + '<label>Session Hours</label><input type="number" id="set_sessionHours" min="1" max="24" step="1" value="' + esc(configData.SessionHours || '10') + '"></div>';
+  html += '<div class="setting-group"><h3>📅 Working Days</h3><div class="help">Login is blocked on non-working days.</div><div class="days-grid">';
   allDays.forEach(function(d) {
     var isChecked = workingDays.indexOf(d) > -1;
-    html += '<div class="day-chk' + (isChecked ? ' checked' : '') + '" '
-      + 'data-day="' + d + '" '
-      + 'onclick="toggleDay(this)">'
-      + d
-      + '</div>';
+    html += '<div class="day-chk' + (isChecked ? ' checked' : '') + '" data-day="' + d + '" onclick="toggleDay(this)">' + d + '</div>';
   });
   html += '</div></div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>🏖 Holidays</h3>'
-    + '<div class="help">Login is blocked on these specific dates.</div>'
-    + '<div id="holidayList">';
-  if (holidaysList.length === 0) {
-    html += '<div style="font-size:12px;color:#999;padding:8px 0;">No holidays added</div>';
-  } else {
-    holidaysList.forEach(function(h, i) {
-      html += '<div class="holiday-row">'
-        + '<span>📅 ' + esc(h) + '</span>'
-        + '<button onclick="removeHoliday(' + i + ')">×</button>'
-        + '</div>';
-    });
-  }
-  html += '</div>'
-    + '<input type="date" id="newHoliday" style="margin-top:10px;">'
-    + '<button onclick="addHoliday()" style="background:#38D430;color:#fff;border:none;'
-    + 'padding:12px;border-radius:10px;font-size:14px;font-weight:800;width:100%;'
-    + 'margin-top:8px;cursor:pointer;font-family:inherit;">+ Add Holiday</button>'
-    + '</div>';
-
-  html += '<div class="setting-group">'
-    + '<h3>🔓 Emergency Override</h3>'
-    + '<div class="help">Allow login outside shift hours and on holidays (emergency only).</div>'
+  html += '<div class="setting-group"><h3>🏖 Holidays</h3><div class="help">Login is blocked on these specific dates.</div><div id="holidayList">';
+  if (holidaysList.length === 0) html += '<div style="font-size:12px;color:#999;padding:8px 0;">No holidays added</div>';
+  else holidaysList.forEach(function(h, i) {
+    html += '<div class="holiday-row"><span>📅 ' + esc(h) + '</span><button onclick="removeHoliday(' + i + ')">×</button></div>';
+  });
+  html += '</div><input type="date" id="newHoliday" style="margin-top:10px;">'
+    + '<button onclick="addHoliday()" style="background:#38D430;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:800;width:100%;margin-top:8px;cursor:pointer;font-family:inherit;">+ Add Holiday</button></div>';
+  html += '<div class="setting-group"><h3>🔓 Emergency Override</h3><div class="help">Allow login outside shift hours and on holidays.</div>'
     + '<select id="set_allowOutside">'
     + '<option value="false"' + (configData.AllowOutsideShift !== 'true' ? ' selected' : '') + '>No — Enforce shift strictly</option>'
     + '<option value="true"' + (configData.AllowOutsideShift === 'true' ? ' selected' : '') + '>Yes — Allow any time</option>'
-    + '</select>'
-    + '</div>';
-
-  html += '<div class="btn-row" style="margin-top:20px;">'
-    + '<button class="btn-save" onclick="saveSettings()" style="padding:16px;">💾 Save All Settings</button>'
-    + '</div>';
+    + '</select></div>';
+  html += '<div class="btn-row" style="margin-top:20px;"><button class="btn-save" onclick="saveSettings()" style="padding:16px;">💾 Save All Settings</button></div>';
 
   document.getElementById('settingsContent').innerHTML = html;
   loadLiveStatus();
@@ -854,9 +783,7 @@ function loadLiveStatus() {
     .catch(function(){});
 }
 
-function toggleDay(el) {
-  el.classList.toggle('checked');
-}
+function toggleDay(el) { el.classList.toggle('checked'); }
 
 function addHoliday() {
   var val = document.getElementById('newHoliday').value;
@@ -867,34 +794,18 @@ function addHoliday() {
   renderSettings();
 }
 
-function removeHoliday(i) {
-  holidaysList.splice(i, 1);
-  renderSettings();
-}
+function removeHoliday(i) { holidaysList.splice(i, 1); renderSettings(); }
 
 function saveSettings() {
-  var shiftStart = document.getElementById('set_shiftStart').value;
-  var shiftEnd = document.getElementById('set_shiftEnd').value;
-  var sessionHours = document.getElementById('set_sessionHours').value;
-  var allowOutside = document.getElementById('set_allowOutside').value;
-
-  var selectedDays = Array.from(document.querySelectorAll('.day-chk.checked'))
-    .map(function(c){ return c.getAttribute('data-day'); });
-
   var updates = {
-    ShiftStart: shiftStart,
-    ShiftEnd: shiftEnd,
-    SessionHours: sessionHours,
-    WorkingDays: selectedDays.join(','),
+    ShiftStart: document.getElementById('set_shiftStart').value,
+    ShiftEnd: document.getElementById('set_shiftEnd').value,
+    SessionHours: document.getElementById('set_sessionHours').value,
+    WorkingDays: Array.from(document.querySelectorAll('.day-chk.checked')).map(function(c){ return c.getAttribute('data-day'); }).join(','),
     Holidays: holidaysList.join(','),
-    AllowOutsideShift: allowOutside
+    AllowOutsideShift: document.getElementById('set_allowOutside').value
   };
-
-  jsonp({
-    action: 'saveConfig',
-    token: session.token,
-    config: JSON.stringify(updates)
-  })
+  jsonp({ action: 'saveConfig', token: session.token, config: JSON.stringify(updates) })
   .then(function(data) {
     if (!data.ok) { toast('❌ ' + data.error); return; }
     toast('✅ Settings saved!');
@@ -902,6 +813,153 @@ function saveSettings() {
     loadLiveStatus();
   })
   .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+/* ═══════════════════════════════════════════════
+   ⭐ NEW: EMERGENCY (Override + Report)
+   ═══════════════════════════════════════════════ */
+function loadEmergency() {
+  var content = document.getElementById('emergencyContent');
+  content.innerHTML = '<div class="empty">Loading...</div>';
+  
+  jsonp({ action: 'getOverrideStatus', token: session.token })
+    .then(function(data) {
+      if (!data.ok) { content.innerHTML = '<div class="empty">❌ ' + esc(data.error) + '</div>'; return; }
+      renderEmergency(data);
+    })
+    .catch(function(err) { content.innerHTML = '<div class="empty">❌ ' + esc(err.message) + '</div>'; });
+}
+
+function renderEmergency(overrideStatus) {
+  var active = overrideStatus.active;
+  var remaining = overrideStatus.remainingMinutes || 0;
+  
+  var html = '';
+  
+  // Override card
+  html += '<div class="override-card' + (active ? ' active' : '') + '">';
+  html += '<h3>' + (active ? '⚡ OVERRIDE ACTIVE' : '🛡️ Master Override') + '</h3>';
+  html += '<p>' + (active 
+    ? 'All shift rules are SUSPENDED. Staff can login anytime, on any day. Auto-expires in <b>' + remaining + ' minutes</b>.'
+    : 'Temporarily suspend all shift/holiday rules for <b>30 minutes</b>. Useful for urgent Director requests or maintenance.'
+  ) + '</p>';
+  html += '<button class="override-btn" onclick="toggleOverride(' + (!active) + ')">'
+    + (active ? '⛔ Disable Override Now' : '⚡ Enable Override for 30 Min')
+    + '</button>';
+  html += '</div>';
+  
+  // Emergency Report card
+  html += '<div class="emergency-card">';
+  html += '<h3>📊 Emergency Report</h3>';
+  html += '<p>Generate instant report from raw data — bypasses all shift, session, and holiday checks.</p>';
+  html += '<div class="date-row">';
+  html += '<input type="date" id="emgFrom" placeholder="From">';
+  html += '<input type="date" id="emgTo" placeholder="To">';
+  html += '</div>';
+  html += '<button class="emergency-btn" onclick="generateEmergencyReport()">⚡ Generate Report</button>';
+  html += '<div id="emgResults"></div>';
+  html += '</div>';
+  
+  document.getElementById('emergencyContent').innerHTML = html;
+  
+  // Set default dates
+  var today = new Date().toISOString().slice(0,10);
+  document.getElementById('emgFrom').value = today;
+  document.getElementById('emgTo').value = today;
+}
+
+function toggleOverride(enable) {
+  var action = enable ? 'enable' : 'disable';
+  if (!confirm('Are you sure you want to ' + action + ' Master Override?\n\n' + 
+    (enable ? 'All shift rules will be suspended for 30 minutes.' : 'Rules will be enforced again.'))) return;
+  
+  jsonp({ action: 'setMasterOverride', token: session.token, enabled: enable ? 'true' : 'false' })
+    .then(function(data) {
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      toast('✅ Override ' + (enable ? 'ENABLED for 30 min' : 'disabled'));
+      loadEmergency();
+    })
+    .catch(function(err) { toast('❌ ' + err.message); });
+}
+
+function generateEmergencyReport() {
+  var from = document.getElementById('emgFrom').value;
+  var to = document.getElementById('emgTo').value;
+  if (!from || !to) { toast('⚠️ Pick both dates'); return; }
+  
+  var btn = event.target;
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  
+  jsonp({ action: 'emergencyReport', token: session.token, from: from, to: to })
+    .then(function(data) {
+      btn.textContent = '⚡ Generate Report';
+      btn.disabled = false;
+      
+      if (!data.ok) { toast('❌ ' + data.error); return; }
+      
+      var s = data.summary;
+      var html = '<div class="emergency-results">';
+      html += '<div class="stat"><span>Total Washrooms</span><b>' + s.totalWashrooms + '</b></div>';
+      html += '<div class="stat"><span>✅ Checked</span><b style="color:#38D430;">' + s.checked + '</b></div>';
+      html += '<div class="stat"><span>⚠ Missed</span><b style="color:#FF5C35;">' + s.missed + '</b></div>';
+      html += '<div class="stat"><span>📊 Compliance</span><b>' + s.compliance + '%</b></div>';
+      html += '<div class="stat"><span>📸 Total Inspections</span><b>' + s.totalInspections + '</b></div>';
+      html += '<div class="stat"><span>🛰️ GPS Issues</span><b style="color:#FF5C35;">' + s.gpsIssues + '</b></div>';
+      html += '<div class="stat"><span>📍 Avg Distance</span><b>' + s.avgDistance + 'm</b></div>';
+      html += '<div class="stat"><span>✅ Verified</span><b>' + s.verified + '</b></div>';
+      html += '</div>';
+      
+      if (data.staffPerformance && data.staffPerformance.length) {
+        html += '<div class="emergency-results"><b style="display:block;margin-bottom:8px;">👥 Staff Performance</b>';
+        data.staffPerformance.forEach(function(st) {
+          html += '<div class="stat"><span>' + esc(st.name) + ' (' + esc(st.id) + ')</span><b>' + st.count + '</b></div>';
+        });
+        html += '</div>';
+      }
+      
+      html += '<button class="emergency-btn" style="margin-top:14px;background:#38D430;color:#fff;" onclick="downloadEmergencyCSV()">📥 Download Full CSV</button>';
+      
+      document.getElementById('emgResults').innerHTML = html;
+      
+      // Store for download
+      window._emergencyReportData = data;
+    })
+    .catch(function(err) {
+      btn.textContent = '⚡ Generate Report';
+      btn.disabled = false;
+      toast('❌ ' + err.message);
+    });
+}
+
+function downloadEmergencyCSV() {
+  var data = window._emergencyReportData;
+  if (!data || !data.allInspections.length) { toast('No data to download'); return; }
+  
+  var headers = ['Date', 'Staff ID', 'Staff Name', 'Washroom', 'Remarks', 'GPS Status', 'Distance (m)', 'Verified'];
+  var rows = [headers.join(',')];
+  
+  data.allInspections.forEach(function(r) {
+    var date = new Date(r.ts).toLocaleString();
+    var vals = [
+      date,
+      r.staffId,
+      r.staffName || '',
+      r.code,
+      (r.remarks || '').replace(/"/g, '""'),
+      r.gpsStatus,
+      r.distance,
+      r.verified ? 'Yes' : 'No'
+    ];
+    rows.push(vals.map(function(v){ return '"' + v + '"'; }).join(','));
+  });
+  
+  var blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'ISD_Emergency_Report_' + new Date().toISOString().slice(0,10) + '.csv');
+  link.click();
 }
 
 /* ═══════════════════════════════════════════════
