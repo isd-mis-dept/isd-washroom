@@ -26,8 +26,35 @@
   }
   
   /* Navigation Bar (Transparent for Home) */
-  .top-nav { display:flex; justify-content:center; gap:8px; background:rgba(255,255,255,0.1); padding:8px; border-radius:16px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); margin-bottom:30px; overflow-x:auto; max-width:90vw;}
-  .top-nav a { text-decoration:none; color:#fff; font-weight:800; font-size:13px; padding:10px 16px; border-radius:10px; white-space:nowrap; transition:all .2s; }
+  /* Universal Mobile-Friendly Navigation */
+  .top-nav { 
+    display: flex; 
+    flex-wrap: wrap; /* ⭐ This allows buttons to go to the next line */
+    justify-content: center; 
+    gap: 6px; 
+    background: #fff; 
+    padding: 8px; 
+    border-bottom: 1px solid #E0E8E6; 
+    position: sticky; 
+    top: 0; 
+    z-index: 100; 
+  }
+  .top-nav a { 
+    text-decoration: none; 
+    color: var(--isd-teal); 
+    font-weight: 800; 
+    font-size: 12px; /* Slightly smaller text for mobile */
+    padding: 8px 12px; /* Slightly smaller padding */
+    border-radius: 8px; 
+    background: var(--isd-light-teal); 
+    white-space: nowrap; 
+    transition: all .2s; 
+    flex: 1 1 auto; /* Allows buttons to stretch and fill the row */
+    text-align: center;
+    max-width: 120px; /* Prevents them from getting too wide */
+  }
+  .top-nav a.active { background: var(--isd-teal); color: #fff; }
+  .top-nav a:hover { opacity: 0.8; }
   .top-nav a:hover, .top-nav a.active { background:#fff; color:var(--isd-teal); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
 
   .box{text-align:center;max-width:420px;width:100%;padding:0 24px;}
