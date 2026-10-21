@@ -698,17 +698,24 @@ function submitInspection() {
   btn.textContent = '⏳ Submitting...';
   showLoading(photos.length ? 'Uploading photos...' : 'Submitting...');
 
-    jsonp({
+  var payload = {
     action: 'submit',
     token: session.token,
     code: currentWc.code,
-    h: currentWc.qrHash,
+    h: currentWc.qrHash || '',
     remarks: document.getElementById('remarks').value.trim(),
     lat: coords.lat,
     lng: coords.lng,
     photos: JSON.stringify(photos),
     deviceInfo: navigator.userAgent.substring(0, 120)
+  };
+
+  // Use fetch (POST) instead of jsonp to bypass URL length limits for photos
+  fetch(GLOBAL_API, {
+    method: 'POST',
+    body: JSON.stringify(payload)
   })
+  .then(function(res) { return res.json(); })
   .then(function(data) {
     hideLoading();
     if (!data.ok) {
@@ -717,12 +724,15 @@ function submitInspection() {
       btn.textContent = '✅ CHECKED & SUBMIT';
       return;
     }
+    
     var statusText = data.status === 'OK' ? '✅ Verified' : '⚠️ GPS Mismatch';
     toast('✅ Submitted — ' + statusText);
     alert('✅ Inspection recorded!\n\nWashroom: ' + currentWc.code + '\nStatus: ' + statusText);
+    
     resetForm();
     loadProgress();
     loadRecent();
+    
   })
   .catch(function(err) {
     hideLoading();
