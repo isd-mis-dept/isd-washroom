@@ -15,35 +15,17 @@
   }
   /* Universal Mobile-Friendly Navigation */
   .top-nav { 
-    display: flex; 
-    flex-wrap: wrap; /* ⭐ This allows buttons to go to the next line */
-    justify-content: center; 
-    gap: 6px; 
-    background: #fff; 
-    padding: 8px; 
-    border-bottom: 1px solid #E0E8E6; 
-    position: sticky; 
-    top: 0; 
-    z-index: 100; 
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; 
+    background: #fff; padding: 8px; border-bottom: 1px solid #E0E8E6; 
+    position: sticky; top: 0; z-index: 100; 
   }
   .top-nav a { 
-    text-decoration: none; 
-    color: var(--isd-teal); 
-    font-weight: 800; 
-    font-size: 12px; /* Slightly smaller text for mobile */
-    padding: 8px 12px; /* Slightly smaller padding */
-    border-radius: 8px; 
-    background: var(--isd-light-teal); 
-    white-space: nowrap; 
-    transition: all .2s; 
-    flex: 1 1 auto; /* Allows buttons to stretch and fill the row */
-    text-align: center;
-    max-width: 120px; /* Prevents them from getting too wide */
+    text-decoration: none; color: var(--isd-teal); font-weight: 800; font-size: 12px;
+    padding: 8px 12px; border-radius: 8px; background: var(--isd-light-teal); 
+    white-space: nowrap; transition: all .2s; flex: 1 1 auto; text-align: center; max-width: 120px;
   }
   .top-nav a.active { background: var(--isd-teal); color: #fff; }
   .top-nav a:hover { opacity: 0.8; }
-  .top-nav a.active { background:var(--isd-teal); color:#fff; }
-  .top-nav a:hover { opacity:0.8; }
   
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -167,12 +149,11 @@
 <header>
   <div class="title">
     <div class="logo-sm">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
-           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <img src="https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/dtx/qy3/y6n/ISD%20logo.jpg" alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
       <div class="fallback" style="display:none;">🏫</div>
     </div>
     <div>
-      <h1 class="app-title">QR Code Generator</h1>
+      <h1 class="app-title">QR Generator</h1>
       <div class="user" id="userName">--</div>
     </div>
   </div>
@@ -195,7 +176,7 @@
   <div class="container">
     <div class="info-banner">
       💡 <b>Tip:</b> Print on A4 paper or vinyl sticker. Each QR is at least 5cm × 5cm.
-      Laminate for washroom humidity. QR codes stay valid forever — even if you edit washroom details later.
+      Laminate for washroom humidity. QR codes include a secure HMAC hash to prevent tampering.
     </div>
 
     <div id="qrGrid" class="grid">
@@ -277,6 +258,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// ⭐ THIS WAS THE MISSING FUNCTION
 function loadWashrooms() {
   const grid = document.getElementById('qrGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading washrooms...</div></div>';
@@ -295,10 +277,17 @@ function loadWashrooms() {
       washrooms = [];
       const appBase = window.location.href.replace('qr-generator.html', 'app.html');
       
+      // Fetch the secure HMAC hash for each washroom
       const promises = data.washrooms.map(w => {
         return jsonp({ action: 'generateQRHash', token: session.token, code: w.code })
-          .then(() => { washrooms.push({ ...w, qrUrl: appBase + '?c=' + encodeURIComponent(w.code) }); })
-          .catch(() => { washrooms.push({ ...w, qrUrl: appBase + '?c=' + encodeURIComponent(w.code) }); });
+          .then(res => { 
+            // Use the secure URL from the backend, or fallback to plain code if it fails
+            const secureUrl = res.ok ? res.url : appBase + '?c=' + encodeURIComponent(w.code); 
+            washrooms.push({ ...w, qrUrl: secureUrl }); 
+          })
+          .catch(() => { 
+            washrooms.push({ ...w, qrUrl: appBase + '?c=' + encodeURIComponent(w.code) }); 
+          });
       });
 
       Promise.all(promises).then(() => renderQRs());
@@ -328,7 +317,7 @@ function renderQRs() {
     card.innerHTML = `
       <div class="qr-header">
         <div class="qr-logo">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
+          <img src="https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/dtx/qy3/y6n/ISD%20logo.jpg"
                alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
           <div class="fallback" style="display:none;">🏫</div>
         </div>
