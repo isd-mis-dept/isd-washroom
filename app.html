@@ -607,14 +607,18 @@ function onScanSuccess(text) {
   showLoading('Looking up washroom...');
 
   var code = text;
+  var hash = '';
   try {
-    if (text.indexOf('?c=') > -1 || text.indexOf('&c=') > -1) {
+    if (text.indexOf('?c=') > -1) {
       var url = new URL(text);
       code = url.searchParams.get('c') || text;
+      hash = url.searchParams.get('h') || '';
+    } else {
+      // Just in case they scanned an old QR with a space or something
+      code = text.trim();
     }
   } catch(_) {}
 
-  code = String(code).trim();
   if (!code) { hideLoading(); toast('❌ Invalid QR'); return; }
 
   jsonp({ action: 'getWashroom', code: code })
@@ -628,6 +632,7 @@ function onScanSuccess(text) {
       if (w.scanPermission === 'restricted' && w.allowedRoles.length && w.allowedRoles.indexOf(session.role) === -1) { alert('🔒 Restricted washroom.'); return; }
 
       currentWc = w;
+      currentWc.qrHash = hash; // Store the hash for submission
       renderWashroom(w);
       toast('✅ ' + w.code + ' detected');
     })
@@ -693,10 +698,11 @@ function submitInspection() {
   btn.textContent = '⏳ Submitting...';
   showLoading(photos.length ? 'Uploading photos...' : 'Submitting...');
 
-  jsonp({
+    jsonp({
     action: 'submit',
     token: session.token,
     code: currentWc.code,
+    h: currentWc.qrHash,
     remarks: document.getElementById('remarks').value.trim(),
     lat: coords.lat,
     lng: coords.lng,
