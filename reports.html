@@ -3,56 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
 <title>ISD Monthly Reports</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F5F7F6; color: #004C45; padding: 20px; }
-  .container { max-width: 800px; margin: 0 auto; }
+  :root{--isd-teal:#004C45;--isd-green:#38D430;--isd-orange:#FF5C35;--bg:#F5F7F6;--muted:#5C7B77;--isd-light-teal:#E6F2F0;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
+  
+  /* Universal Mobile-Friendly Navigation */
+  .top-nav { 
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; 
+    background: #fff; padding: 8px; border-bottom: 1px solid #E0E8E6; 
+    position: sticky; top: 0; z-index: 100; 
+  }
+  .top-nav a { 
+    text-decoration: none; color: var(--isd-teal); font-weight: 800; font-size: 12px;
+    padding: 8px 12px; border-radius: 8px; background: var(--isd-light-teal); 
+    white-space: nowrap; transition: all .2s; flex: 1 1 auto; text-align: center; max-width: 120px;
+  }
+  .top-nav a.active { background: var(--isd-teal); color: #fff; }
+  .top-nav a:hover { opacity: 0.8; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
   .card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-  .btn { background: #004C45; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-  th { background: #f0f4f8; }
+  .btn { background: #004C45; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: transform .1s; }
+  .btn:active { transform: scale(.98); }
+  
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+  th { background: #f0f4f8; font-weight: 800; }
+  
   @media print {
     body { background: #fff; padding: 0; }
-    .card { box-shadow: none; border: none; padding: 0; }
-    .no-print { display: none !important; }
+    .top-nav, .no-print { display: none !important; }
+    .card { box-shadow: none; border: none; padding: 0; margin-bottom: 10px; }
     th { background: #004C45 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+    table { border: 1px solid #ddd; }
   }
 </style>
 </head>
 <body>
+
+<!-- UNIVERSAL NAVIGATION -->
+<nav class="top-nav">
+  <a href="index.html">🏠 Home</a>
+  <a href="app.html">📷 Scanner</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
+  <a href="qr-generator.html">🖨️ QRs</a>
+  <a href="verify.html">✅ Verify</a>
+  <a href="reports.html" class="active" id="navReports">📈 Reports</a>
+</nav>
+
 <div class="container">
+  <!-- SETTINGS CARD (Hidden on Print) -->
   <div class="card no-print">
-    <h2>📊 Monthly Report Generator</h2>
-    <p>Select a month to generate a printable summary for management.</p>
-    <input type="month" id="reportMonth" style="padding:10px; font-size:16px; border-radius:8px; border:1px solid #ccc;">
-    <button class="btn" onclick="generateReport()">Generate PDF</button>
-    <button class="btn" style="background:#FF5C35;" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    <h2 style="margin-top:0;">📊 Monthly Report Generator</h2>
+    <p style="color:var(--muted);">Select a month to generate a printable summary for management.</p>
+    
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+      <input type="month" id="reportMonth" style="padding:10px; font-size:15px; border-radius:8px; border:1px solid #ccc; flex:1; min-width:200px;">
+      <button class="btn" onclick="generateReport()">Generate Report</button>
+      <button class="btn" style="background:#FF5C35;" onclick="window.print()">🖨️ Save as PDF</button>
+    </div>
   </div>
 
+  <!-- REPORT OUTPUT -->
   <div id="reportOutput" style="display:none;">
-    <div style="text-align:center; margin-bottom:20px;">
-      <h1 style="margin:0;">International School Dhaka</h1>
+    <div style="text-align:center; margin-bottom:24px;">
+      <h1 style="margin:0; font-size:24px;">International School Dhaka</h1>
       <h3 style="margin:5px 0; color:#5C7B77;">Washroom Inspection Monthly Report</h3>
-      <p id="reportDateRange" style="margin:0; font-weight:bold;"></p>
+      <p id="reportDateRange" style="margin:0; font-weight:bold; background:#eef2f5; display:inline-block; padding:4px 12px; border-radius:20px;"></p>
     </div>
     
-    <div class="card" style="display:flex; justify-content:space-around; text-align:center;">
-      <div><h4 style="margin:0; color:#5C7B77;">TOTAL SCANS</h4><h2 id="r_total" style="margin:5px 0; font-size:28px;">0</h2></div>
-      <div><h4 style="margin:0; color:#5C7B77;">COMPLIANCE</h4><h2 id="r_comp" style="margin:5px 0; font-size:28px; color:#38D430;">0%</h2></div>
-      <div><h4 style="margin:0; color:#5C7B77;">GPS FLAGS</h4><h2 id="r_flags" style="margin:5px 0; font-size:28px; color:#FF5C35;">0</h2></div>
+    <div class="card" style="display:flex; justify-content:space-around; text-align:center; padding:20px;">
+      <div><h4 style="margin:0; color:#5C7B77; font-size:12px; text-transform:uppercase;">Total Scans</h4><h2 id="r_total" style="margin:5px 0; font-size:28px;">0</h2></div>
+      <div><h4 style="margin:0; color:#5C7B77; font-size:12px; text-transform:uppercase;">Compliance</h4><h2 id="r_comp" style="margin:5px 0; font-size:28px; color:#38D430;">0%</h2></div>
+      <div><h4 style="margin:0; color:#5C7B77; font-size:12px; text-transform:uppercase;">GPS Flags</h4><h2 id="r_flags" style="margin:5px 0; font-size:28px; color:#FF5C35;">0</h2></div>
     </div>
 
-    <div class="card" style="padding:0; overflow:hidden;">
+    <div class="card" style="padding:0; overflow-x:auto;">
       <table>
         <thead>
-          <tr><th>Date</th><th>Staff</th><th>Washroom</th><th>Status</th><th>Inventory</th></tr>
+          <tr>
+            <th>Date</th>
+            <th>Staff</th>
+            <th>Washroom</th>
+            <th>Status</th>
+            <th>Inventory</th>
+          </tr>
         </thead>
-        <tbody id="r_tableBody"></tbody>
+        <tbody id="r_tableBody">
+          <!-- Rows will populate here -->
+        </tbody>
       </table>
     </div>
   </div>
 </div>
+
 <script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
@@ -70,8 +120,32 @@ function jsonp(params) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  session = JSON.parse(localStorage.getItem('isd_session')||'null');
-  if (!session) { alert('Login required'); window.location.href = 'app.html'; }
+  const savedSession = localStorage.getItem('isd_session');
+  
+  if (!savedSession) { 
+    window.location.href = 'app.html'; 
+    return;
+  }
+
+  session = JSON.parse(savedSession);
+
+  // Block anyone who is not an admin or supervisor
+  if (session.role !== 'admin' && session.role !== 'supervisor') {
+    document.body.innerHTML = `
+      <div style="padding: 40px 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="font-size: 60px; margin-bottom: 10px;">⛔</div>
+        <h1 style="color: #c0392b; margin-bottom: 10px;">Access Denied</h1>
+        <p style="color: #5C7B77; font-size: 16px; margin-bottom: 24px;">
+          You do not have permission to view Reports.<br>
+          This page is restricted to Admins and Supervisors only.
+        </p>
+        <a href="app.html" style="display: inline-block; padding: 12px 24px; background: #004C45; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Return to Scanner
+        </a>
+      </div>
+    `;
+    throw new Error("Unauthorized Access");
+  }
 });
 
 function generateReport() {
@@ -86,23 +160,22 @@ function generateReport() {
   document.getElementById('reportDateRange').textContent = 'Report Period: ' + fromDate + ' to ' + toDate;
   document.getElementById('reportOutput').style.display = 'block';
   
-  // Show loading state in the table
   document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">⏳ Loading table data...</td></tr>';
 
+  // Get summary stats
   jsonp({ action: 'getDashboard', token: session.token, from: fromDate, to: toDate }).then(res => {
     if (!res.ok) { alert(res.error); return; }
     document.getElementById('r_total').textContent = res.checked;
     document.getElementById('r_comp').textContent = res.compliance + '%';
     document.getElementById('r_flags').textContent = res.gpsIssues;
 
-    // Fetch detailed logs for the table
+    // Get detailed logs for the table
     jsonp({ action: 'exportData', token: session.token }).then(dataRes => {
       if (!dataRes.ok) { 
         document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Error: ' + dataRes.error + '</td></tr>';
         return; 
       }
       
-      // Filter rows by the selected month
       const rows = dataRes.data.filter(r => r.Date >= fromDate && r.Date <= toDate);
       
       if (rows.length === 0) {
@@ -110,7 +183,6 @@ function generateReport() {
          return;
       }
 
-      // Render rows
       document.getElementById('r_tableBody').innerHTML = rows.map(r => `
         <tr>
           <td>${r.Date}</td>
