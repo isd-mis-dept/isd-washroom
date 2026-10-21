@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#004C45">
+<title>Supervisor Verification</title>
+<style>
+  :root{--isd-teal:#004C45;--isd-green:#38D430;--isd-orange:#FF5C35;--bg:#F5F7F6;--muted:#5C7B77;--isd-light-teal:#E6F2F0;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--isd-teal);}
+  .top-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; background: #fff; padding: 8px; border-bottom: 1px solid #E0E8E6; position: sticky; top: 0; z-index: 100; }
+  .top-nav a { text-decoration: none; color: var(--isd-teal); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px; background: var(--isd-light-teal); white-space: nowrap; transition: all .2s; flex: 1 1 auto; text-align: center; max-width: 120px; }
+  .top-nav a.active { background: var(--isd-teal); color: #fff; }
+  .container{max-width:800px;margin:0 auto;padding:20px 16px 60px;}
+  h1{font-size:20px;font-weight:800;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,76,69,.06);}
+  .flag-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+  .flag-item:last-child { border-bottom: none; }
+  .btn-verify { background: var(--isd-green); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+  .btn-verify:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="index.html">🏠 Home</a>
+  <a href="app.html">📷 Scanner</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+  <a href="admin.html">⚙️ Admin</a>
+  <a href="control.html">🎛️ Control</a>
+  <a href="permissions.html">🛡️ Perms</a>
+  <a href="qr-generator.html">🖨️ QRs</a>
+  <a href="verify.html" class="active">✅ Verify</a>
+</nav>
+<div class="container">
+  <h1>GPS Verification Queue</h1>
+  <div class="sub">Review flagged inspections and verify them manually.</div>
+  <div class="card" id="listWrap">
+    <div style="text-align:center; padding:20px;">Loading...</div>
+  </div>
+</div>
+<script>
+const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
+let GLOBAL_API = BOOTSTRAP_API;
+let session = null;
+
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'isdCb_' + Date.now();
+    const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k])).join('&');
+    const url = GLOBAL_API + '?' + query + '&callback=' + callbackName;
+    const scriptEl = document.createElement('script');
+    window[callbackName] = function(data) { scriptEl.remove(); delete window[callbackName]; resolve(data); };
+    scriptEl.src = url; document.head.appendChild(scriptEl);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  session = JSON.parse(localStorage.getItem('isd_session')||'null');
+  if (!session || (session.role !== 'admin' && session.role !== 'supervisor')) {
+    document.getElementById('listWrap').innerHTML = '<div style="color:red;text-align:center;">❌ Supervisor Access Required</div>';
+    return;
+  }
+  loadFlags();
+});
+
+function loadFlags() {
+  jsonp({ action: 'getFlagged', token: session.token }).then(res => {
+    if (!res.ok) { document.getElementById('listWrap').innerHTML = 'Error: ' + res.error; return; }
+    if (!res.flagged.length) {
+      document.getElementById('listWrap').innerHTML = '<div style="text-align:center; color:#0d7a3c; font-weight:bold; padding:20px;">✅ All clear! No flagged scans.</div>';
+      return;
+    }
+    document.getElementById('listWrap').innerHTML = res.flagged.map(f => `
+      <div class="flag-item">
+        <div>
+          <b>${f.code}</b> <br>
+          <span style="font-size:12px; color:#c0392b;">Dist: ${f.dist}m | Staff: ${f.staff}</span><br>
+          <span style="font-size:12px; color:#666;">${f.remarks || 'No remarks'}</span>
+        </div>
+        <button class="btn-verify" onclick="verify('${f.ts}', '${f.code}', this)">Verify</button>
+      </div>
+    `).join('');
+  });
+}
+
+function verify(ts, code, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  jsonp({ action: 'verifyInspection', token: session.token, ts: ts, code: code }).then(res => {
+    if (res.ok) { btn.textContent = '✅ Cleared'; btn.style.background = '#0d7a3c'; }
+    else { alert('Error: ' + res.error); btn.disabled = false; btn.textContent = 'Verify'; }
+  });
+}
+</script>
+</body>
+</html>
