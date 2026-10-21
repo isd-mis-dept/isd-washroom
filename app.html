@@ -260,6 +260,17 @@
         📝 Remarks (optional)
       </label>
       <textarea id="remarks" rows="2" placeholder="e.g., Cleaned, soap refilled..."></textarea>
+            <label style="display:block;margin-top:14px;font-weight:700;font-size:13px;color:var(--isd-teal);">
+        🧼 Inventory Status
+      </label>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <label style="flex:1; display:flex; align-items:center; gap:8px; background:#f0f4f8; padding:10px; border-radius:8px; cursor:pointer;">
+          <input type="checkbox" id="chkSoap" style="width:20px; height:20px;"> Soap OK
+        </label>
+        <label style="flex:1; display:flex; align-items:center; gap:8px; background:#f0f4f8; padding:10px; border-radius:8px; cursor:pointer;">
+          <input type="checkbox" id="chkPaper" style="width:20px; height:20px;"> Paper OK
+        </label>
+      </div>
       <label style="display:block;margin-top:14px;font-weight:700;font-size:13px;color:var(--isd-teal);">
         📸 Photos <span style="color:#999;font-weight:500;">(recommended)</span>
       </label>
@@ -724,12 +735,14 @@ function submitInspection() {
   btn.textContent = '⏳ Submitting...';
   showLoading(photos.length ? 'Uploading photos...' : 'Submitting...');
 
-  var payload = {
+    var payload = {
     action: 'submit',
     token: session.token,
     code: currentWc.code,
     h: currentWc.qrHash || '',
     remarks: document.getElementById('remarks').value.trim(),
+    soap: document.getElementById('chkSoap').checked ? 'OK' : 'Empty',
+    paper: document.getElementById('chkPaper').checked ? 'OK' : 'Empty',
     lat: coords.lat,
     lng: coords.lng,
     photos: JSON.stringify(photos),
@@ -774,6 +787,8 @@ function resetForm() {
   document.getElementById('detailCard').classList.add('hidden');
   document.getElementById('thumbs').innerHTML = '';
   document.getElementById('remarks').value = '';
+  document.getElementById('chkSoap').checked = false;
+  document.getElementById('chkPaper').checked = false;
   var btn = document.getElementById('submitBtn');
   btn.disabled = false;
   btn.textContent = '✅ CHECKED & SUBMIT';
