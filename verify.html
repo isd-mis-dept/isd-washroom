@@ -59,37 +59,55 @@ function jsonp(params) {
 window.addEventListener('DOMContentLoaded', () => {
   session = JSON.parse(localStorage.getItem('isd_session')||'null');
   if (!session || (session.role !== 'admin' && session.role !== 'supervisor')) {
-    document.getElementById('listWrap').innerHTML = '<div style="color:red;text-align:center;">❌ Supervisor Access Required</div>';
+    document.getElementById('listWrap').innerHTML = '<div style="color:red;text-align:center; padding:20px; font-weight:bold;">❌ Supervisor or Admin Access Required<br><small>Please log in with a supervisor account.</small></div>';
     return;
   }
   loadFlags();
 });
 
 function loadFlags() {
+  const wrap = document.getElementById('listWrap');
+  
   jsonp({ action: 'getFlagged', token: session.token }).then(res => {
-    if (!res.ok) { document.getElementById('listWrap').innerHTML = 'Error: ' + res.error; return; }
-    if (!res.flagged.length) {
-      document.getElementById('listWrap').innerHTML = '<div style="text-align:center; color:#0d7a3c; font-weight:bold; padding:20px;">✅ All clear! No flagged scans.</div>';
+    if (!res.ok) { 
+      wrap.innerHTML = '<div style="color:red; text-align:center; padding:20px;">Error: ' + res.error + '</div>'; 
+      return; 
+    }
+    
+    // Safely check if flagged data exists
+    const flaggedData = res.flagged || [];
+    
+    if (flaggedData.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center; color:#0d7a3c; font-weight:bold; padding:20px;">✅ All clear! No flagged scans pending verification.</div>';
       return;
     }
-    document.getElementById('listWrap').innerHTML = res.flagged.map(f => `
+    
+    wrap.innerHTML = flaggedData.map(f => `
       <div class="flag-item">
         <div>
           <b>${f.code}</b> <br>
-          <span style="font-size:12px; color:#c0392b;">Dist: ${f.dist}m | Staff: ${f.staff}</span><br>
-          <span style="font-size:12px; color:#666;">${f.remarks || 'No remarks'}</span>
+          <span style="font-size:12px; color:#c0392b; font-weight:bold;">Dist: ${f.dist}m | Staff: ${f.staff}</span><br>
+          <span style="font-size:12px; color:#666;">${f.remarks}</span>
         </div>
         <button class="btn-verify" onclick="verify('${f.ts}', '${f.code}', this)">Verify</button>
       </div>
     `).join('');
+  }).catch(err => {
+    wrap.innerHTML = '<div style="color:red; text-align:center; padding:20px;">Network Error: ' + err.message + '</div>';
   });
 }
 
 function verify(ts, code, btn) {
   btn.disabled = true; btn.textContent = '...';
   jsonp({ action: 'verifyInspection', token: session.token, ts: ts, code: code }).then(res => {
-    if (res.ok) { btn.textContent = '✅ Cleared'; btn.style.background = '#0d7a3c'; }
-    else { alert('Error: ' + res.error); btn.disabled = false; btn.textContent = 'Verify'; }
+    if (res.ok) { 
+      btn.textContent = '✅ Cleared'; 
+      btn.style.background = '#0d7a3c'; 
+    } else { 
+      alert('Error: ' + res.error); 
+      btn.disabled = false; 
+      btn.textContent = 'Verify'; 
+    }
   });
 }
 </script>
