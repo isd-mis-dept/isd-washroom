@@ -53,7 +53,6 @@
     </div>
   </div>
 </div>
-
 <script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
@@ -86,6 +85,9 @@ function generateReport() {
 
   document.getElementById('reportDateRange').textContent = 'Report Period: ' + fromDate + ' to ' + toDate;
   document.getElementById('reportOutput').style.display = 'block';
+  
+  // Show loading state in the table
+  document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">⏳ Loading table data...</td></tr>';
 
   jsonp({ action: 'getDashboard', token: session.token, from: fromDate, to: toDate }).then(res => {
     if (!res.ok) { alert(res.error); return; }
@@ -95,18 +97,31 @@ function generateReport() {
 
     // Fetch detailed logs for the table
     jsonp({ action: 'exportData', token: session.token }).then(dataRes => {
-      if (!dataRes.ok) return;
+      if (!dataRes.ok) { 
+        document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Error: ' + dataRes.error + '</td></tr>';
+        return; 
+      }
+      
+      // Filter rows by the selected month
       const rows = dataRes.data.filter(r => r.Date >= fromDate && r.Date <= toDate);
       
+      if (rows.length === 0) {
+         document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">No scans found for this month.</td></tr>';
+         return;
+      }
+
+      // Render rows
       document.getElementById('r_tableBody').innerHTML = rows.map(r => `
         <tr>
-          <td>${r.Date.split(' ')[0]}</td>
+          <td>${r.Date}</td>
           <td>${r.Name}</td>
           <td><b>${r.Washroom}</b></td>
           <td style="color:${r.GPS_Status === 'OK' ? '#0d7a3c' : '#c0392b'}; font-weight:bold;">${r.GPS_Status}</td>
-          <td style="font-size:12px;">🧼 ${r.SoapStatus || '-'} | 🧻 ${r.PaperStatus || '-'}</td>
+          <td style="font-size:12px;">🧼 ${r.SoapStatus} | 🧻 ${r.PaperStatus}</td>
         </tr>
       `).join('');
+    }).catch(err => {
+      document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Network Error: ' + err.message + '</td></tr>';
     });
   });
 }
