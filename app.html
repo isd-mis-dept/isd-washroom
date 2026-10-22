@@ -192,8 +192,8 @@
 <div id="loginScreen">
   <div class="box">
     <div class="logo-wrap">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoMh6-Rs3_uDU541yQIucn1G2jRnhSV97dbEvWCoHdVA&s=10"
-           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <img src="https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/4zn/uqc/ecp/isd-512x512.png"
+       alt="ISD" class="dynamic-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
       <div class="fallback" style="display:none;">🏫</div>
     </div>
     <h1 class="app-title">ISD Washroom</h1>
@@ -318,8 +318,13 @@ function loadUIBootstrapper() {
         }
         if (data.SchoolName) document.getElementById('schoolTag').textContent = data.SchoolName;
         if (data.LogoUrl) {
-          const logos = document.querySelectorAll('img[alt="ISD"]');
-          logos.forEach(img => img.src = data.LogoUrl);
+          // ⭐ Change this to look for our new class
+          const logos = document.querySelectorAll('.dynamic-logo');
+          logos.forEach(img => {
+            img.src = data.LogoUrl;
+            // Add error handling so if the new link is broken, it shows the fallback emoji
+            img.onerror = function() { this.style.display='none'; this.nextElementSibling.style.display='block'; };
+          });
         }
       }
       resolve();
