@@ -192,6 +192,7 @@
 <script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
+let GLOBAL_LOGO = 'https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/4zn/uqc/ecp/isd-512x512.png'; // Fallback logo
 let session = null;
 let washrooms = [];
 
@@ -256,8 +257,8 @@ function renderQRs() {
     card.innerHTML = `
       <div class="qr-header">
         <div class="qr-logo">
-          <img src="https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/dtx/qy3/y6n/ISD%20logo.jpg"
-               alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <img src="${GLOBAL_LOGO || 'https://7d3e463591.imgdist.com/pub/bfra/ppyb5a2u/4zn/uqc/ecp/isd-512x512.png'}"
+           alt="ISD" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
           <div class="fallback" style="display:none;">🏫</div>
         </div>
         <div class="qr-school">International School Dhaka</div>
@@ -297,6 +298,7 @@ function loadUIBootstrapper() {
       delete window[cb];
       if (data.ok) {
         GLOBAL_API = data.API_URL || BOOTSTRAP_API;
+        if (data.LogoUrl) GLOBAL_LOGO = data.LogoUrl; // ⭐ This grabs the logo from the Control Center
         if (data.BrandColor) document.documentElement.style.setProperty('--isd-teal', data.BrandColor);
         if (data.AppName) {
           document.title = data.AppName + ' - QR Generator';
