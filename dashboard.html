@@ -220,17 +220,18 @@ function loadDashboard() {
         return;
       }
       
-      list.innerHTML = data.recent.slice(0, 20).map(r => {
-        const ok = r.status === 'OK';
-        const badge = ok ? '<span class="badge-ok">OK</span>' : '<span class="badge-bad">GPS</span>';
-        // The backend now sends the formatted time string, so we just grab the HH:MM part
-        const time = r.ts.split(' ')[1].substring(0, 5); 
-        
-        return `<div class="activity-row">
-          <div>${badge} <b>${r.code}</b></div>
-          <div style="color:#5C7B77;font-size:11px;">${r.dist}m · ${time}</div>
-        </div>`;
-      }).join('');
+        list.innerHTML = data.recent.slice(0, 20).map(r => {
+          const ok = r.status === 'OK';
+          const badge = ok ? '<span class="badge-ok">OK</span>' : '<span class="badge-bad">GPS</span>';
+          
+          // Format time from the timestamp
+          const time = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
+          
+          return `<div class="activity-row">
+            <div>${badge} <b>${r.code}</b></div>
+            <div style="color:#5C7B77;font-size:11px;">${r.dist}m · ${time}</div>
+          </div>`;
+        }).join('');
     })
     .catch(err => alert('Error: ' + err.message));
 }
