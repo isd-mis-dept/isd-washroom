@@ -184,15 +184,16 @@ function generateReport() {
          return;
       }
 
-      document.getElementById('r_tableBody').innerHTML = rows.map(r => `
-        <tr>
-          <td>${r.Date}</td>
-          <td>${r.Name}</td>
-          <td><b>${r.Washroom}</b></td>
-          <td style="color:${r.GPS_Status === 'OK' ? '#0d7a3c' : '#c0392b'}; font-weight:bold;">${r.GPS_Status}</td>
-          <td style="font-size:12px;">🧼 ${r.SoapStatus} | 🧻 ${r.PaperStatus}</td>
-        </tr>
-      `).join('');
+          document.getElementById('r_tableBody').innerHTML = rows.map(r => `
+            <tr>
+              <td>${r.Date}</td>
+              <td>${r.Time}</td>
+              <td>${r.Name}</td>
+              <td><b>${r.Washroom}</b></td>
+              <td style="color:${r.GPS_Status === 'OK' ? '#0d7a3c' : '#c0392b'}; font-weight:bold;">${r.GPS_Status}</td>
+              <td style="font-size:12px;">🧼 ${r.SoapStatus} | 🧻 ${r.PaperStatus}</td>
+            </tr>
+          `).join('');
     }).catch(err => {
       document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Network Error: ' + err.message + '</td></tr>';
     });
