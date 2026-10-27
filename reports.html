@@ -94,6 +94,7 @@
             <th>Washroom</th>
             <th>Status</th>
             <th>Inventory</th>
+            <th>Photo</th>
           </tr>
         </thead>
         <tbody id="r_tableBody">
@@ -199,6 +200,32 @@ function generateReport() {
     });
   });
 }
+
+  // Example of the updated row generation:
+let html = `
+  <tr>
+    <td>${formatDate(r[0])}</td>
+    <td>${formatTime(r[0])}</td>
+    <td>${r[2]}</td> <!-- Staff -->
+    <td>${r[3]}</td> <!-- Washroom -->
+    <td>${r[9]}</td> <!-- Status -->
+    <td>${inventoryIcons}</td> <!-- Your existing Inventory logic -->
+`;
+
+// ADD THE PHOTO LOGIC HERE:
+// Column F (Index 5) holds the Drive photo URLs in your backend
+let photoCell = '<td>-</td>'; 
+if (r[5] && r[5].trim() !== '') {
+  const firstPhoto = r[5].split(',')[0]; // Get the first image if multiple
+  photoCell = `
+    <td>
+      <img src="${firstPhoto}" class="photo-thumb" onclick="openModal('${firstPhoto}')" alt="Proof">
+    </td>
+  `;
+}
+
+html += `${photoCell}</tr>`; // Close the row with the photo
+  
 </script>
 </body>
 </html>
