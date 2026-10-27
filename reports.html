@@ -33,12 +33,73 @@
   th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
   th { background: #f0f4f8; font-weight: 800; }
   
+  /* --- Photo Thumbnail in Table --- */
+  .photo-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    transition: transform 0.2s;
+  }
+  .photo-thumb:hover { transform: scale(1.1); }
+
+  /* --- Full-Screen Modal --- */
+  .photo-modal {
+    display: none; 
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.85); 
+    backdrop-filter: blur(4px);
+    -webkit-overflow-scrolling: touch; 
+  }
+  .photo-modal-content {
+    margin: 5% auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    object-fit: contain;
+  }
+  .photo-modal-close {
+    position: fixed;
+    top: 15px;
+    right: 25px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+    background: rgba(0,0,0,0.5);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .photo-modal-close:hover { background: #ff5c35; }
+
+  @media (max-width: 768px) {
+    .photo-modal-content { margin: 15% auto; max-width: 95%; max-height: 80vh; }
+    .photo-modal-close { top: 10px; right: 10px; font-size: 30px; width: 40px; height: 40px; }
+  }
+
   @media print {
     body { background: #fff; padding: 0; }
     .top-nav, .no-print { display: none !important; }
     .card { box-shadow: none; border: none; padding: 0; margin-bottom: 10px; }
     th { background: #004C45 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
     table { border: 1px solid #ddd; }
+    .photo-thumb { width: 50px; height: 50px; } /* Increase photo size for PDF */
   }
 </style>
 </head>
@@ -105,6 +166,12 @@
   </div>
 </div>
 
+<!-- MODAL HTML -->
+<div id="imageModal" class="photo-modal">
+  <span class="photo-modal-close" onclick="closeModal()">&times;</span>
+  <img class="photo-modal-content" id="modalImage" src="">
+</div>
+
 <script>
 const BOOTSTRAP_API = 'https://script.google.com/macros/s/AKfycby-ijYlllqxinwkDCszrxu45etA-cq3tjYhR34SwuUSh1jP27B7pDfor0tYobfbMGsL/exec';
 let GLOBAL_API = BOOTSTRAP_API;
@@ -162,7 +229,7 @@ function generateReport() {
   document.getElementById('reportDateRange').textContent = 'Report Period: ' + fromDate + ' to ' + toDate;
   document.getElementById('reportOutput').style.display = 'block';
   
-  document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">⏳ Loading table data...</td></tr>';
+  document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">⏳ Loading table data...</td></tr>';
 
   // Get summary stats
   jsonp({ action: 'getDashboard', token: session.token, from: fromDate, to: toDate }).then(res => {
@@ -174,80 +241,72 @@ function generateReport() {
     // Get detailed logs for the table
     jsonp({ action: 'exportData', token: session.token }).then(dataRes => {
       if (!dataRes.ok) { 
-        document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Error: ' + dataRes.error + '</td></tr>';
+        document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Error: ' + dataRes.error + '</td></tr>';
         return; 
       }
       
       const rows = dataRes.data.filter(r => r.Date >= fromDate && r.Date <= toDate);
       
       if (rows.length === 0) {
-         document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">No scans found for this month.</td></tr>';
+         document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#666;">No scans found for this month.</td></tr>';
          return;
       }
 
-          document.getElementById('r_tableBody').innerHTML = rows.map(r => `
-            <tr>
-              <td>${r.Date}</td>
-              <td>${r.Time}</td>
-              <td>${r.Name}</td>
-              <td><b>${r.Washroom}</b></td>
-              <td style="color:${r.GPS_Status === 'OK' ? '#0d7a3c' : '#c0392b'}; font-weight:bold;">${r.GPS_Status}</td>
-              <td style="font-size:12px;">🧼 ${r.SoapStatus} | 🧻 ${r.PaperStatus}</td>
-            </tr>
-          `).join('');
+      // ⭐ FIXED: Build the table properly mapping the photo thumbnail
+      document.getElementById('r_tableBody').innerHTML = rows.map(r => {
+        
+        let photoCell = '<td style="text-align:center;">-</td>';
+        if (r.Photos && r.Photos !== '' && r.Photos !== '-') {
+          const firstPhoto = r.Photos.split(',')[0].trim(); 
+          photoCell = `
+            <td style="text-align:center;">
+              <img src="${firstPhoto}" class="photo-thumb" onclick="openModal('${firstPhoto}')" alt="Proof">
+            </td>
+          `;
+        }
+
+        return `
+          <tr>
+            <td>${r.Date}</td>
+            <td>${r.Time}</td>
+            <td>${r.Name}</td>
+            <td><b>${r.Washroom}</b></td>
+            <td style="color:${r.GPS_Status === 'OK' ? '#0d7a3c' : '#c0392b'}; font-weight:bold;">${r.GPS_Status}</td>
+            <td style="font-size:12px;">🧼 ${r.SoapStatus} | 🧻 ${r.PaperStatus}</td>
+            ${photoCell}
+          </tr>
+        `;
+      }).join('');
+      
     }).catch(err => {
-      document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Network Error: ' + err.message + '</td></tr>';
+      document.getElementById('r_tableBody').innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Network Error: ' + err.message + '</td></tr>';
     });
   });
 }
 
-// Inside your fetch/then block where you receive 'data.data':
-const rows = data.data; 
-
-let html = '';
-rows.forEach(r => {
-  // 1. Build the Photo Thumbnail
-  // 1. Check if the photo data exists (checking both r.Photos and r[5] just in case)
-let photoUrl = r.Photos || r[5] || ''; 
-let photoCell = '<td style="text-align:center;">-</td>'; // Default empty cell
-
-if (photoUrl && photoUrl !== '-') {
-  // If there are multiple photos separated by a comma, grab the first one
-  const firstPhoto = photoUrl.split(',')[0].trim(); 
-  
-  // 2. Render the thumbnail image
-  photoCell = `
-    <td style="text-align:center;">
-      <img src="${firstPhoto}" 
-           class="photo-thumb" 
-           onclick="openModal('${firstPhoto}')" 
-           style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ccc;" 
-           alt="Proof">
-    </td>
-  `;
+// Modal Functions
+function openModal(imageSrc) {
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("modalImage");
+  modal.style.display = "block";
+  modalImg.src = imageSrc;
+  document.body.style.overflow = "hidden"; 
 }
 
-// 3. Add ${photoCell} right after the Inventory <td> in your HTML string
+function closeModal() {
+  const modal = document.getElementById("imageModal");
+  modal.style.display = "none";
+  document.body.style.overflow = "auto"; 
+}
 
-  // 2. Build the Table Row
-  html += `
-    <tr>
-      <td>${r.Date}</td>
-      <td>${r.Time}</td>
-      <td>${r.Name}</td>
-      <td>${r.Washroom}</td>
-      <td>${r.GPS_Status}</td>
-      <td>
-        ${r.SoapStatus === 'OK' ? '🧼 OK' : '🧼 -'} | 
-        ${r.PaperStatus === 'OK' ? '📄 OK' : '📄 -'}
-      </td>
-      ${photoCell} <!-- ⭐ Insert the photo at the end -->
-    </tr>
-  `;
+window.onclick = function(event) {
+  const modal = document.getElementById("imageModal");
+  if (event.target === modal) closeModal();
+}
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === "Escape") closeModal();
 });
-
-document.getElementById('reportBody').innerHTML = html;
-  
 </script>
 </body>
 </html>
