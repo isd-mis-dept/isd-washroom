@@ -207,19 +207,27 @@ const rows = data.data;
 let html = '';
 rows.forEach(r => {
   // 1. Build the Photo Thumbnail
-  let photoCell = '<td>-</td>';
-  if (r.Photos && r.Photos !== '') {
-    // Get the first photo if there are multiple comma-separated
-    const firstPhoto = r.Photos.split(',')[0]; 
-    photoCell = `
-      <td>
-        <img src="${firstPhoto}" 
-             class="photo-thumb" 
-             onclick="openModal('${firstPhoto}')" 
-             alt="Proof">
-      </td>
-    `;
-  }
+  // 1. Check if the photo data exists (checking both r.Photos and r[5] just in case)
+let photoUrl = r.Photos || r[5] || ''; 
+let photoCell = '<td style="text-align:center;">-</td>'; // Default empty cell
+
+if (photoUrl && photoUrl !== '-') {
+  // If there are multiple photos separated by a comma, grab the first one
+  const firstPhoto = photoUrl.split(',')[0].trim(); 
+  
+  // 2. Render the thumbnail image
+  photoCell = `
+    <td style="text-align:center;">
+      <img src="${firstPhoto}" 
+           class="photo-thumb" 
+           onclick="openModal('${firstPhoto}')" 
+           style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ccc;" 
+           alt="Proof">
+    </td>
+  `;
+}
+
+// 3. Add ${photoCell} right after the Inventory <td> in your HTML string
 
   // 2. Build the Table Row
   html += `
