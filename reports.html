@@ -252,15 +252,33 @@ function generateReport() {
          return;
       }
 
+      
       // ⭐ FIXED: Build the table properly mapping the photo thumbnail
       document.getElementById('r_tableBody').innerHTML = rows.map(r => {
         
         let photoCell = '<td style="text-align:center;">-</td>';
+        
         if (r.Photos && r.Photos !== '' && r.Photos !== '-') {
           const firstPhoto = r.Photos.split(',')[0].trim(); 
+          
+          // MAGIC FIX: Extract the Google Drive File ID from whatever format it's in
+          let fileId = '';
+          if (firstPhoto.includes('id=')) {
+             fileId = firstPhoto.split('id=')[1].split('&')[0];
+          } else if (firstPhoto.includes('/d/')) {
+             fileId = firstPhoto.split('/d/')[1].split('/')[0];
+          }
+
+          // Use the reliable Google Thumbnail API endpoint
+          const imgSrc = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : firstPhoto;
+
           photoCell = `
             <td style="text-align:center;">
-              <img src="${firstPhoto}" class="photo-thumb" onclick="openModal('${firstPhoto}')" alt="Proof">
+              <img src="${imgSrc}" 
+                   class="photo-thumb" 
+                   onclick="openModal('${imgSrc}')" 
+                   onerror="this.style.display='none'; this.parentElement.innerHTML='❌ Error';"
+                   alt="Proof">
             </td>
           `;
         }
