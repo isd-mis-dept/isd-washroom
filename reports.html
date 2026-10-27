@@ -201,30 +201,44 @@ function generateReport() {
   });
 }
 
-  // Example of the updated row generation:
-let html = `
-  <tr>
-    <td>${formatDate(r[0])}</td>
-    <td>${formatTime(r[0])}</td>
-    <td>${r[2]}</td> <!-- Staff -->
-    <td>${r[3]}</td> <!-- Washroom -->
-    <td>${r[9]}</td> <!-- Status -->
-    <td>${inventoryIcons}</td> <!-- Your existing Inventory logic -->
-`;
+// Inside your fetch/then block where you receive 'data.data':
+const rows = data.data; 
 
-// ADD THE PHOTO LOGIC HERE:
-// Column F (Index 5) holds the Drive photo URLs in your backend
-let photoCell = '<td>-</td>'; 
-if (r[5] && r[5].trim() !== '') {
-  const firstPhoto = r[5].split(',')[0]; // Get the first image if multiple
-  photoCell = `
-    <td>
-      <img src="${firstPhoto}" class="photo-thumb" onclick="openModal('${firstPhoto}')" alt="Proof">
-    </td>
+let html = '';
+rows.forEach(r => {
+  // 1. Build the Photo Thumbnail
+  let photoCell = '<td>-</td>';
+  if (r.Photos && r.Photos !== '') {
+    // Get the first photo if there are multiple comma-separated
+    const firstPhoto = r.Photos.split(',')[0]; 
+    photoCell = `
+      <td>
+        <img src="${firstPhoto}" 
+             class="photo-thumb" 
+             onclick="openModal('${firstPhoto}')" 
+             alt="Proof">
+      </td>
+    `;
+  }
+
+  // 2. Build the Table Row
+  html += `
+    <tr>
+      <td>${r.Date}</td>
+      <td>${r.Time}</td>
+      <td>${r.Name}</td>
+      <td>${r.Washroom}</td>
+      <td>${r.GPS_Status}</td>
+      <td>
+        ${r.SoapStatus === 'OK' ? '🧼 OK' : '🧼 -'} | 
+        ${r.PaperStatus === 'OK' ? '📄 OK' : '📄 -'}
+      </td>
+      ${photoCell} <!-- ⭐ Insert the photo at the end -->
+    </tr>
   `;
-}
+});
 
-html += `${photoCell}</tr>`; // Close the row with the photo
+document.getElementById('reportBody').innerHTML = html;
   
 </script>
 </body>
